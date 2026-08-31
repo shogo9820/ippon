@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>投票用画面</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    <div class="voter-container">
+        <h2>投票端末</h2>
+        <label>端末ID: <input type="text" id="voter-id" value="端末1"></label>
+        <div id="voting-buttons"></div>
+        <div id="voter-status" style="font-size: 1.2rem; margin-top: 15px; font-weight: bold; color: #28a745;"></div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="./js/voter.js"></script>
+</body>
+</html>

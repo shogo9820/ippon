@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>演出・お題画面</title>
+    <link rel="stylesheet" href="./css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body class="display-body">
+    <!-- QRコード表示フェーズ -->
+    <div id="qr-container" style="display:none; text-align: center;">
+        <h1 id="qr-message"></h1>
+        <div id="qr-codes" style="display: flex; justify-content: center; gap: 50px; margin-top: 30px;"></div>
+    </div>
+
+    <!-- ゲーム本編・ランキングフェーズ -->
+    <div id="display-container" style="display:none;">
+        <h1 id="main-title">待機中</h1>
+        <div id="content-area"></div>
+        <div id="effect-area"></div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="./js/display.js"></script>
+</body>
+</html>
