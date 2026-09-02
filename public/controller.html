@@ -8,7 +8,6 @@
 </head>
 <body>
     <div class="container">
-        <h2>制御・進行パネル</h2>
         
         <div id="setup-section" class="section">
             <h3>1. モード選択</h3>
@@ -21,65 +20,143 @@
             <button onclick="startGame()" style="background-color: #28a745;">ゲームスタート！</button>
         </div>
 
+        <!-- フェーズ3: ゲーム本編 -->
         <div id="play-section" class="section" style="display:none;">
-            <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
-                <button onclick="requestRanking()" style="background-color: #dc3545;">ゲームを終了してランキングを表示</button>
-            </div>
-
-            <!-- IPPON用操作 -->
-            <div id="ippon-controls" style="display:none;">
-                <h3>IPPON 操作</h3>
-                <input type="text" id="ippon-question-input" placeholder="お題を入力...">
-                <button onclick="showIpponQuestion()">お題を出す</button>
-                <button onclick="startVoting()">投票受付開始</button>
-                <button onclick="finishVoting()">投票終了</button>
-                <button onclick="endQuestion()">次のお題へ</button>
+            
+            <!-- IPPONグランプリ制御画面 -->
+            <div id="ippon-controls" style="display:none; display: flex; flex-direction: column; min-height: calc(100vh - 60px); box-sizing: border-box;">
                 
-                <h3>投票モード設定</h3>
-                <select id="vote-mode-select" onchange="changeVoteMode()">
-                    <option value="10-1">10台 × 1票</option>
-                    <option value="5-2">5台 × 2票</option>
-                    <option value="2-1">2台 × 1票</option>
-                </select>
+                <!-- 1. ヘッダー ＆ ゲーム終了ボタン -->
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid #ddd; flex-shrink: 0;">
+                    <h2 style="margin: 0; font-size: 1.1rem;">IPPONグランプリ 制御</h2>
+                    <button onclick="requestRanking()" style="background-color: #dc3545; width: auto; padding: 6px 10px; margin: 0; font-size: 0.85rem;">ゲーム終了ボタン</button>
+                </div>
+
+                <!-- 2. 現在のお題開始時点からの経過時間 -->
+                <div style="margin-bottom: 10px; flex-shrink: 0; background: #e9ecef; padding: 6px 10px; border-radius: 4px; font-size: 0.9rem;">
+                    経過時間: <span id="ippon-timer" style="font-weight: bold; color: #333;">00:00</span>
+                </div>
+
+                <!-- 3. 現在のお題欄 -->
+                <div style="margin-bottom: 10px; flex-shrink: 0;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 3px; font-size: 0.85rem;">現在のお題欄</label>
+                    <div id="ippon-current-q" style="background: #f8f9fa; padding: 10px; border-radius: 4px; border: 1px solid #ddd; color: #007bff; font-size: 1rem; max-height: 80px; overflow-y: auto;">未設定</div>
+                </div>
+
+                <!-- 4. 次のお題（入力欄 ＆ 出題ボタン） -->
+                <div style="margin-bottom: 10px; flex-shrink: 0;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 3px; font-size: 0.85rem;">次のお題</label>
+                    <div style="display: flex; gap: 8px; align-items: center;">
+                        <input type="text" id="ippon-question-input" placeholder="お題を入力..." style="margin: 0; padding: 8px; font-size: 0.9rem; flex-grow: 1;">
+                        <button onclick="showIpponQuestion()" style="background-color: #ffc107; color: #000; width: auto; padding: 9px 15px; margin: 0; font-size: 0.9rem; flex-shrink: 0;">お題を出す</button>
+                    </div>
+                </div>
+
+                <!-- 5. お題を追加ボタン（モーダル表示） -->
+                <div style="margin-bottom: 10px; flex-shrink: 0;">
+                    <button onclick="openIpponAddModal()" style="background-color: #17a2b8; padding: 10px; margin: 0; font-size: 0.95rem;">お題を追加ボタン</button>
+                </div>
+
+                <!-- 6. 投票モード設定 -->
+                <div style="margin-bottom: 10px; flex-shrink: 0;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 3px; font-size: 0.85rem;">投票モード設定</label>
+                    <select id="vote-mode-select" onchange="changeVoteMode()" style="margin: 0; padding: 6px; font-size: 0.9rem;">
+                        <option value="10-1">10台 × 1票</option>
+                        <option value="5-2">5台 × 2票</option>
+                        <option value="2-1">2台 × 1票</option>
+                    </select>
+                </div>
+
+                <!-- 7. 現在の参加者全員の得点と順位 -->
+                <div style="margin-bottom: 10px; flex-shrink: 0;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 3px; font-size: 0.85rem; color: #383d41;">現在の参加者全員の得点と順位</label>
+                    <div id="ippon-all-scores" style="background: #e2e3e5; padding: 8px 10px; border-radius: 4px; border: 1px solid #d6d8db; font-size: 0.9rem; max-height: 70px; overflow-y: auto;">まだスコアがありません</div>
+                </div>
+
+                <!-- 8. 解答権保有者 -->
+                <div style="margin-bottom: 12px; flex-shrink: 0;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 3px; font-size: 0.85rem; color: #856404;">解答権保有者</label>
+                    <div id="ippon-fastest" style="background: #fff3cd; padding: 8px 10px; border-radius: 4px; border: 1px solid #ffeeba; font-weight: bold; font-size: 1rem; color: #dc3545;">なし</div>
+                </div>
+
+                <!-- 9. 投票終了ボタン（下部配置） -->
+                <div style="flex-shrink: 0; margin-top: auto;">
+                    <button onclick="finishVoting()" style="background-color: #28a745; margin: 0; padding: 12px; font-size: 1rem;">投票終了ボタン</button>
+                </div>
+
             </div>
 
             <!-- 早押しクイズ用操作 -->
-            <div id="buzzer-controls" style="display:none;">
-                <h3>早押しクイズ 操作</h3>
+            <div id="buzzer-controls" style="display:none; display: flex; flex-direction: column; min-height: calc(100vh - 60px); box-sizing: border-box;">
                 
-                <div style="background: #f8f9fa; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ddd;">
-                    <p><strong>現在出題中の問題:</strong> <span id="ctrl-current-q" style="color: #007bff;">未選択</span></p>
-                    <p><strong>正解:</strong> <span id="ctrl-current-a" style="color: #28a745;">-</span></p>
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid #ddd; flex-shrink: 0;">
+                    <h2 style="margin: 0; font-size: 1.1rem;">早押しクイズ 制御</h2>
+                    <button onclick="requestRanking()" style="background-color: #dc3545; width: auto; padding: 6px 10px; margin: 0; font-size: 0.85rem;">ゲーム終了・ランキング</button>
                 </div>
 
-                <div style="background: #e9ecef; padding: 10px; margin-bottom: 15px; border-radius: 5px;">
-                    <h4>問題の追加</h4>
-                    <input type="text" id="new-q" placeholder="問題文">
-                    <input type="text" id="new-a" placeholder="答え">
-                    <button onclick="addQuestion()" style="background-color: #17a2b8;">問題をリストに追加</button>
+                <div style="margin-bottom: 10px; flex-shrink: 0;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 3px; font-size: 0.85rem;">現在出題中の問題文</label>
+                    <div id="ctrl-current-q" style="background: #f8f9fa; padding: 10px; border-radius: 4px; border: 1px solid #ddd; color: #007bff; font-size: 1rem; max-height: 80px; overflow-y: auto;">未選択</div>
                 </div>
 
-                <div style="margin-bottom: 15px;">
-                    <label>出題する問題を選択:</label>
-                    <select id="question-select"></select>
-                    <button onclick="startSelectedQuestion()" style="background-color: #ffc107; color: #000;">この問題を出題する</button>
+                <div style="margin-bottom: 10px; flex-shrink: 0;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 3px; font-size: 0.85rem;">正解</label>
+                    <div id="ctrl-current-a" style="background: #f8f9fa; padding: 8px 10px; border-radius: 4px; border: 1px solid #ddd; color: #28a745; font-size: 0.95rem;">-</div>
                 </div>
 
-                <div id="judgement-panel" style="background: #fff3cd; padding: 15px; border-radius: 5px; border: 1px solid #ffeeba; display:none;">
-                    <h4>解答権保持者 / 順位</h4>
-                    <div id="queue-list" style="margin-bottom: 10px; font-weight: bold;"></div>
-                    <button onclick="judgeCorrect()" style="background-color: #28a745;">正解！ (得点加算)</button>
-                    <button onclick="judgeWrong()" style="background-color: #dc3545;">不正解 / お手付き (次の人へ)</button>
+                <div style="margin-bottom: 10px; flex-shrink: 0;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 3px; font-size: 0.85rem;">次の問題文</label>
+                    <select id="question-select" style="margin: 0; padding: 6px; font-size: 0.9rem;"></select>
                 </div>
+
+                <div style="margin-bottom: 10px; flex-shrink: 0;">
+                    <button onclick="startSelectedQuestion()" style="background-color: #ffc107; color: #000; padding: 10px; margin: 0; font-size: 0.95rem;">出題ボタン</button>
+                </div>
+
+                <div style="margin-bottom: 10px; flex-shrink: 0;">
+                    <button onclick="openAddModal()" style="background-color: #17a2b8; padding: 10px; margin: 0; font-size: 0.95rem;">問題追加ボタン</button>
+                </div>
+
+                <div style="margin-bottom: 10px; flex-shrink: 0;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 3px; font-size: 0.85rem; color: #383d41;">参加者全員の順位と持ち点</label>
+                    <div id="ctrl-all-scores" style="background: #e2e3e5; padding: 8px 10px; border-radius: 4px; border: 1px solid #d6d8db; font-size: 0.9rem; max-height: 70px; overflow-y: auto;">まだスコアがありません</div>
+                </div>
+
+                <div style="margin-bottom: 12px; flex-shrink: 0;">
+                    <label style="font-weight: bold; display: block; margin-bottom: 3px; font-size: 0.85rem; color: #856404;">解答権保有者</label>
+                    <div id="ctrl-fastest" style="background: #fff3cd; padding: 8px 10px; border-radius: 4px; border: 1px solid #ffeeba; font-weight: bold; font-size: 1rem; color: #dc3545;">なし</div>
+                </div>
+
+                <div style="display: flex; gap: 10px; flex-shrink: 0; margin-top: auto;">
+                    <button onclick="judgeWrong()" style="background-color: #dc3545; margin: 0; padding: 12px; font-size: 1rem;">誤答ボタン</button>
+                    <button onclick="judgeCorrect()" style="background-color: #28a745; margin: 0; padding: 12px; font-size: 1rem;">正解ボタン</button>
+                </div>
+
             </div>
         </div>
 
         <div id="ranking-section" class="section" style="display:none;">
             <h3>ゲーム終了・結果発表中</h3>
             <button onclick="restartGame()" style="background-color: #28a745;">もう一度同じモードで遊ぶ</button>
-            <button onclick="resetGame()" style="background-color: #dc3545;">タイトル画面に戻る</button>
+            <button onclick="resetGame()" style="background-color: #dc3545;">タイトルに戻る</button>
         </div>
     </div>
+
+    <!-- 問題追加用モーダル -->
+    <div id="add-modal" style="display:none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); justify-content: center; align-items: center; z-index: 1000;">
+        <div style="background: white; padding: 20px; border-radius: 8px; width: 90%; max-width: 400px; box-shadow: 0 4px 6px rgba(0,0,0,0.1);">
+            <h3 style="margin-top: 0;">問題の追加</h3>
+            <label>問題文</label>
+            <input type="text" id="new-q" placeholder="問題文を入力">
+            <label>答え</label>
+            <input type="text" id="new-a" placeholder="答えを入力">
+            <div style="display: flex; gap: 10px; margin-top: 15px;">
+                <button onclick="addQuestion()" style="background-color: #28a745; margin: 0;">追加する</button>
+                <button onclick="closeAddModal()" style="background-color: #6c757d; margin: 0;">キャンセル</button>
+            </div>
+        </div>
+    </div>
+
     <script src="/socket.io/socket.io.js"></script>
     <script src="./js/controller.js"></script>
 </body>
