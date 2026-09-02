@@ -10,7 +10,6 @@ const io = new Server(server);
 
 app.use(express.static(path.join(__dirname, 'public')));
 
-// ローカルIPアドレスを取得する関数
 function getLocalIp() {
     const interfaces = os.networkInterfaces();
     for (const devName in interfaces) {
@@ -28,23 +27,27 @@ function getLocalIp() {
 const PORT = process.env.PORT || 3000;
 const baseUrl = `http://${getLocalIp()}:${PORT}`;
 
-// サーバー側の状態管理
 let gameState = {
   phase: 'setup', // 'setup' -> 'recruiting' -> 'playing' -> 'ranking'
-  mode: null,
+  mode: null,     // 'ippon' または 'buzzer'
   status: 'waiting', 
+  questions: [
+    { q: '日本の首都はどこ？', a: '東京' },
+    { q: '1+1は？', a: '2' }
+  ],
+  currentQuestionIndex: 0,
   currentQuestion: '',
+  currentAnswer: '',
   votes: {},
-  buzzerWinner: null,
+  buzzerQueue: [], // 早押し順位キュー [{playerName, timestamp}]
   voteMode: '10-1',
-  scores: {}, // プレイヤーごとの得点
+  scores: {},
   baseUrl: baseUrl 
 };
 
 io.on('connection', (socket) => {
   socket.emit('updateState', gameState);
 
-  // モード選択
   socket.on('selectMode', (mode) => {
     gameState.phase = 'recruiting';
     gameState.mode = mode;
@@ -52,10 +55,24 @@ io.on('connection', (socket) => {
     io.emit('updateState', gameState);
   });
 
-  // ゲームスタート
   socket.on('startGame', () => {
     gameState.phase = 'playing';
     gameState.status = 'waiting';
+    io.emit('updateState', gameState);
+  });
+
+  // 共通・IPPONお題送信用
+  socket.on('showQuestionText', (questionText) => {
+    gameState.status = 'question';
+    gameState.currentQuestion = questionText;
+    gameState.votes = {};
+    gameState.buzzerQueue = [];
+    io.emit('updateState', gameState);
+  });
+
+  // 早押し用問題の動的追加
+  socket.on('addQuestion', (data) => {
+    gameState.questions.push({ q: data.q, a: data.a });
     io.emit('updateState', gameState);
   });
 
@@ -64,11 +81,16 @@ io.on('connection', (socket) => {
     io.emit('updateState', gameState);
   });
 
-  socket.on('showQuestion', (questionText) => {
+  // 早押し用リストから問題出題
+  socket.on('showQuestionByIndex', (index) => {
+    if (gameState.questions[index]) {
+      gameState.currentQuestionIndex = index;
+      gameState.currentQuestion = gameState.questions[index].q;
+      gameState.currentAnswer = gameState.questions[index].a;
+    }
     gameState.status = 'question';
-    gameState.currentQuestion = questionText;
     gameState.votes = {};
-    gameState.buzzerWinner = null;
+    gameState.buzzerQueue = [];
     io.emit('updateState', gameState);
   });
 
@@ -90,53 +112,74 @@ io.on('connection', (socket) => {
   socket.on('endQuestion', () => {
     gameState.status = 'waiting';
     gameState.currentQuestion = '';
-    gameState.votes = {};
+    gameState.currentAnswer = '';
+    gameState.buzzerQueue = [];
     io.emit('updateState', gameState);
   });
 
+  // 早押しボタン受付（同時押し対応・重複防止）
   socket.on('pressBuzzer', (data) => {
-    if (!gameState.buzzerWinner && gameState.status === 'question') {
-      gameState.buzzerWinner = data.playerName;
-      if (!gameState.scores[data.playerName]) {
-        gameState.scores[data.playerName] = 0;
+    if (gameState.status === 'question' && gameState.mode === 'buzzer') {
+      const alreadyPressed = gameState.buzzerQueue.some(p => p.playerName === data.playerName);
+      if (!alreadyPressed) {
+        gameState.buzzerQueue.push({
+          playerName: data.playerName,
+          timestamp: Date.now()
+        });
+        if (!gameState.scores[data.playerName]) {
+          gameState.scores[data.playerName] = 0;
+        }
+        io.emit('buzzerPressed', gameState.buzzerQueue);
+        io.emit('updateState', gameState);
       }
-      io.emit('buzzerPressed', gameState.buzzerWinner);
+    }
+  });
+
+  // 早押し正解判定（得点加算）
+  socket.on('correctAnswer', (playerName) => {
+    if (!gameState.scores[playerName]) gameState.scores[playerName] = 0;
+    gameState.scores[playerName] += 1;
+    gameState.status = 'result';
+    io.emit('updateState', gameState);
+  });
+
+  // 早押し不正解判定（お手付き：先頭の人間を除外して問題文再開、または次の人へ）
+  socket.on('wrongAnswer', () => {
+    gameState.buzzerQueue.shift();
+    if (gameState.buzzerQueue.length > 0) {
+      io.emit('updateState', gameState);
+    } else {
+      gameState.status = 'question';
       io.emit('updateState', gameState);
     }
   });
 
-  socket.on('resetBuzzer', () => {
-    gameState.buzzerWinner = null;
-    gameState.status = 'waiting';
-    io.emit('updateState', gameState);
-  });
-
-  // ランキング画面へ移行
   socket.on('requestRanking', () => {
     gameState.phase = 'ranking';
     io.emit('updateState', gameState);
   });
 
-  // もう一度同じモードで再戦
   socket.on('restartGame', () => {
     gameState.status = 'waiting';
     gameState.currentQuestion = '';
-    gameState.votes = {};
-    gameState.buzzerWinner = null;
+    gameState.currentAnswer = '';
+    gameState.buzzerQueue = {};
     gameState.scores = {};
     gameState.phase = 'playing';
     io.emit('updateState', gameState);
   });
 
-  // タイトルに戻る（完全リセット）
   socket.on('resetGame', () => {
     gameState = {
       phase: 'setup',
       mode: null,
       status: 'waiting',
+      questions: gameState.questions,
+      currentQuestionIndex: 0,
       currentQuestion: '',
+      currentAnswer: '',
       votes: {},
-      buzzerWinner: null,
+      buzzerQueue: [],
       voteMode: '10-1',
       scores: {},
       baseUrl: baseUrl

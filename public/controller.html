@@ -10,36 +10,30 @@
     <div class="container">
         <h2>制御・進行パネル</h2>
         
-        <!-- フェーズ1: モード選択 -->
         <div id="setup-section" class="section">
             <h3>1. モード選択</h3>
-            <p>実施するゲームを選んでください</p>
             <button onclick="selectMode('ippon')">IPPONグランプリ</button>
             <button onclick="selectMode('buzzer')">早押しクイズ</button>
         </div>
 
-        <!-- フェーズ2: 参加者募集 -->
         <div id="recruit-section" class="section" style="display:none;">
             <h3>2. 参加者待機中</h3>
-            <p>参加者がQRコードを読み込んで参加しています。<br>全員揃ったらスタートしてください。</p>
             <button onclick="startGame()" style="background-color: #28a745;">ゲームスタート！</button>
         </div>
 
-        <!-- フェーズ3: ゲーム本編の操作パネル -->
         <div id="play-section" class="section" style="display:none;">
-            
             <div style="margin-bottom: 20px; padding-bottom: 15px; border-bottom: 1px solid #ddd;">
                 <button onclick="requestRanking()" style="background-color: #dc3545;">ゲームを終了してランキングを表示</button>
             </div>
 
-            <!-- IPPONグランプリ用操作 -->
-            <div id="ippon-controls">
+            <!-- IPPON用操作 -->
+            <div id="ippon-controls" style="display:none;">
                 <h3>IPPON 操作</h3>
-                <input type="text" id="question-input" placeholder="お題を入力...">
-                <button onclick="showQuestion()">お題を出す</button>
+                <input type="text" id="ippon-question-input" placeholder="お題を入力...">
+                <button onclick="showIpponQuestion()">お題を出す</button>
                 <button onclick="startVoting()">投票受付開始</button>
-                <button onclick="finishVoting()">投票終了 (演出反映)</button>
-                <button onclick="endQuestion()">次のお題 / お題終了</button>
+                <button onclick="finishVoting()">投票終了</button>
+                <button onclick="endQuestion()">次のお題へ</button>
                 
                 <h3>投票モード設定</h3>
                 <select id="vote-mode-select" onchange="changeVoteMode()">
@@ -52,19 +46,39 @@
             <!-- 早押しクイズ用操作 -->
             <div id="buzzer-controls" style="display:none;">
                 <h3>早押しクイズ 操作</h3>
-                <button onclick="resetBuzzer()">早押しリセット・問題開始</button>
-            </div>
+                
+                <div style="background: #f8f9fa; padding: 10px; margin-bottom: 15px; border-radius: 5px; border: 1px solid #ddd;">
+                    <p><strong>現在出題中の問題:</strong> <span id="ctrl-current-q" style="color: #007bff;">未選択</span></p>
+                    <p><strong>正解:</strong> <span id="ctrl-current-a" style="color: #28a745;">-</span></p>
+                </div>
 
+                <div style="background: #e9ecef; padding: 10px; margin-bottom: 15px; border-radius: 5px;">
+                    <h4>問題の追加</h4>
+                    <input type="text" id="new-q" placeholder="問題文">
+                    <input type="text" id="new-a" placeholder="答え">
+                    <button onclick="addQuestion()" style="background-color: #17a2b8;">問題をリストに追加</button>
+                </div>
+
+                <div style="margin-bottom: 15px;">
+                    <label>出題する問題を選択:</label>
+                    <select id="question-select"></select>
+                    <button onclick="startSelectedQuestion()" style="background-color: #ffc107; color: #000;">この問題を出題する</button>
+                </div>
+
+                <div id="judgement-panel" style="background: #fff3cd; padding: 15px; border-radius: 5px; border: 1px solid #ffeeba; display:none;">
+                    <h4>解答権保持者 / 順位</h4>
+                    <div id="queue-list" style="margin-bottom: 10px; font-weight: bold;"></div>
+                    <button onclick="judgeCorrect()" style="background-color: #28a745;">正解！ (得点加算)</button>
+                    <button onclick="judgeWrong()" style="background-color: #dc3545;">不正解 / お手付き (次の人へ)</button>
+                </div>
+            </div>
         </div>
 
-        <!-- フェーズ4: ランキング表示中の制御操作 -->
         <div id="ranking-section" class="section" style="display:none;">
             <h3>ゲーム終了・結果発表中</h3>
-            <p>プロジェクターにランキングを表示しています。</p>
             <button onclick="restartGame()" style="background-color: #28a745;">もう一度同じモードで遊ぶ</button>
             <button onclick="resetGame()" style="background-color: #dc3545;">タイトル画面に戻る</button>
         </div>
-
     </div>
     <script src="/socket.io/socket.io.js"></script>
     <script src="./js/controller.js"></script>

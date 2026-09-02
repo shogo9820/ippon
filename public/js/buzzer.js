@@ -21,9 +21,15 @@ socket.on('updateState', (state) => {
     }
 });
 
-socket.on('buzzerPressed', (winner) => {
+socket.on('buzzerPressed', (queue) => {
+    const playerName = document.getElementById('player-name').value;
     const status = document.getElementById('buzzer-status');
-    if (status) {
-        status.innerText = `${winner} が早押しを勝ち取りました！`;
+    if (status && queue && queue.length > 0) {
+        const myIndex = queue.findIndex(p => p.playerName === playerName);
+        if (myIndex === 0) {
+            status.innerHTML = `<span style="color: #dc3545;">あなたが一番乗りで解答権獲得！</span>`;
+        } else if (myIndex > 0) {
+            status.innerHTML = `<span style="color: #ffc107;">第 ${myIndex + 1} 位でボタンを押しました</span>`;
+        }
     }
 });
