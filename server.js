@@ -3,7 +3,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
 const os = require('os');
-const quizData = require('./data.js');
+const quizData = require('./public/js/data.js');
 
 const app = express();
 const server = http.createServer(app);

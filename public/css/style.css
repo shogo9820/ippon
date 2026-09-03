@@ -1,9 +1,20 @@
+:root {
+    --bg-main: #f7f6f3;
+    --card-bg: #ffffff;
+    --text-primary: #2b2b2b;
+    --text-secondary: #767676;
+    --border-soft: #eae7df;
+    --radius-box: 14px;
+    --radius-btn: 12px;
+}
+
 body {
-    font-family: sans-serif;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
     margin: 0;
-    padding: 10px;
-    background-color: #f4f4f9;
-    color: #333;
+    padding: 16px;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    font-size: 17px;
     box-sizing: border-box;
 }
 
@@ -22,71 +33,127 @@ body {
 .menu-grid {
     display: flex;
     flex-direction: column;
-    gap: 15px;
-    margin-top: 20px;
+    gap: 16px;
+    margin-top: 24px;
 }
 
 .menu-card {
     display: block;
-    padding: 20px;
-    background: #007bff;
+    padding: 24px;
     color: white;
     text-decoration: none;
-    font-size: 18px;
-    font-weight: bold;
-    border-radius: 8px;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+    font-size: 20px;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    border-radius: var(--radius-box);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .menu-card:hover {
-    background: #0056b3;
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+}
+
+/* メニューの1番目（IPPONグランプリ）: 金色っぽい黄色 */
+.menu-grid .menu-card:nth-child(1) {
+    background: #d4a373;
+}
+.menu-grid .menu-card:nth-child(1):hover {
+    background: #c49263;
+}
+
+/* メニューの2番目（早押しクイズ）: 赤 */
+.menu-grid .menu-card:nth-child(2) {
+    background: #d15a52;
+}
+.menu-grid .menu-card:nth-child(2):hover {
+    background: #be4a43;
 }
 
 .container, .buzzer-container, .voter-container {
-    background: white;
-    padding: 15px;
-    border-radius: 8px;
+    background: var(--card-bg);
+    padding: 24px;
+    border-radius: var(--radius-box);
     max-width: 100%;
     margin: 0 auto;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.04), 0 2px 6px rgba(0, 0, 0, 0.02);
+    border: 1px solid var(--border-soft);
 }
 
 .section {
-    margin-bottom: 20px;
-    padding-bottom: 15px;
-    border-bottom: 1px solid #ddd;
+    margin-bottom: 24px;
+    padding-bottom: 20px;
+    border-bottom: 1px solid var(--border-soft);
 }
 
+/* 通常のボタンをより大きく押しやすく改良 */
 button {
     width: 100%;
-    padding: 15px;
+    padding: 18px 20px;
     font-size: 18px;
-    font-weight: bold;
+    font-weight: 600;
+    letter-spacing: 0.02em;
     cursor: pointer;
-    margin: 8px 0;
+    margin: 10px 0;
     border: none;
-    border-radius: 6px;
-    background-color: #007bff;
+    border-radius: var(--radius-btn);
+    background-color: #627264;
     color: white;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+button:hover {
+    opacity: 0.92;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
 button:active {
-    background-color: #0056b3;
+    transform: translateY(0);
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
 }
 
 input, select {
     width: 100%;
-    padding: 12px;
-    font-size: 16px;
-    margin: 8px 0;
+    padding: 14px 16px;
+    font-size: 17px;
+    margin: 10px 0;
     box-sizing: border-box;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-btn);
+    background-color: #faf9f6;
+    color: var(--text-primary);
+    outline: none;
+    transition: all 0.2s ease;
+}
+
+input:focus, select:focus {
+    border-color: #627264;
+    background-color: #fff;
+    box-shadow: 0 0 0 4px rgba(98, 114, 100, 0.12);
+}
+
+/* お題文・問題文表示エリア（3行分程度の高さ） */
+#ippon-current-q, #ctrl-current-q {
+    min-height: 4.8em;
+    max-height: 140px;
+    overflow-y: auto;
+    padding: 16px;
+    box-sizing: border-box;
+    line-height: 1.6;
+    font-size: 18px;
+    background-color: #faf9f6;
+    border: 1px solid var(--border-soft);
+    border-radius: var(--radius-btn);
+    color: #435045;
+    font-weight: 500;
 }
 
 .display-body {
-    background-color: #111;
-    color: white;
+    background-color: #161618;
+    color: #f1f1f3;
     text-align: center;
     height: 100vh;
     display: flex;
@@ -99,6 +166,8 @@ input, select {
 
 #main-title {
     font-size: 4rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
     margin-bottom: 20px;
 }
 
@@ -108,7 +177,7 @@ input, select {
 
 .ippon-flash {
     font-size: 7rem;
-    color: #ff0055;
+    color: #e0566b;
     animation: flash 0.5s infinite alternate;
 }
 
@@ -118,22 +187,23 @@ input, select {
 }
 
 #buzzer-btn {
-    background-color: #dc3545;
-    font-size: 2.5rem;
+    background-color: #d15a52;
+    font-size: 2.3rem;
     padding: 40px;
     border-radius: 50%;
-    width: 220px;
-    height: 220px;
-    margin: 20px auto;
+    width: 210px;
+    height: 210px;
+    margin: 24px auto;
     display: flex;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 8px 15px rgba(220, 53, 69, 0.4);
+    box-shadow: 0 10px 25px rgba(209, 90, 82, 0.35);
+    transition: transform 0.15s ease, background-color 0.2s ease;
 }
 
 #buzzer-btn:active {
-    background-color: #b02a37;
-    transform: scale(0.95);
+    background-color: #b84a43;
+    transform: scale(0.94);
 }
 
 .buzzer-container {
@@ -141,11 +211,37 @@ input, select {
 }
 
 .vote-btn {
-    background-color: #28a745;
-    font-size: 1.5rem;
-    padding: 20px;
-    margin: 10px 0;
+    background-color: #5c8270;
+    font-size: 1.6rem;
+    padding: 22px;
+    margin: 12px 0;
+    border-radius: var(--radius-box);
 }
+
 .vote-btn:active {
-    background-color: #218838;
+    background-color: #4d6d5e;
+}
+
+/* IPPONグランプリボタン：画像のような鮮やかな黄色＆文字は黒で見やすく */
+button.btn-ippon, 
+.section button.btn-ippon {
+    background-color: #ffd400 !important;
+    color: #000000 !important;
+    font-weight: bold;
+}
+button.btn-ippon:hover, 
+.section button.btn-ippon:hover {
+    background-color: #e6be00 !important;
+}
+
+/* 早押しクイズボタン：鮮やかな黄色と並ぶビビッドな赤色＆文字は白 */
+button.btn-buzzer, 
+.section button.btn-buzzer {
+    background-color: #ff3333 !important;
+    color: #ffffff !important;
+    font-weight: bold;
+}
+button.btn-buzzer:hover, 
+.section button.btn-buzzer:hover {
+    background-color: #e02828 !important;
 }

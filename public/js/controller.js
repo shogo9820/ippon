@@ -17,6 +17,15 @@ function showIpponQuestion() {
     }
 }
 
+// IPPONお題セレクトで選択されたものをテキストボックスに反映
+function onIpponSelectChange() {
+    const select = document.getElementById('ippon-question-select');
+    const input = document.getElementById('ippon-question-input');
+    if (select.value) {
+        input.value = select.value;
+    }
+}
+
 function startIpponTimer() {
     ipponStartTime = Date.now();
     if (ipponTimerInterval) clearInterval(ipponTimerInterval);
@@ -30,10 +39,25 @@ function startIpponTimer() {
 }
 
 function openIpponAddModal() {
-    openAddModal();
+    document.getElementById('ippon-add-modal').style.display = 'flex';
+}
+function closeIpponAddModal() {
+    document.getElementById('ippon-add-modal').style.display = 'none';
+    document.getElementById('new-ippon-q').value = '';
 }
 
-// モダル制御 (早押し・共通)
+function addIpponQuestion() {
+    const q = document.getElementById('new-ippon-q').value;
+    if (q) {
+        socket.emit('addIpponQuestion', q);
+        closeIpponAddModal();
+        alert('IPPONのお題を追加しました！');
+    } else {
+        alert('お題を入力してください');
+    }
+}
+
+// モダル制御 (早押し用)
 function openAddModal() {
     document.getElementById('add-modal').style.display = 'flex';
 }
@@ -94,6 +118,22 @@ socket.on('updateState', (state) => {
             document.getElementById('vote-mode-select').value = state.voteMode;
             document.getElementById('ippon-current-q').innerText = state.currentQuestion || '未設定';
 
+            // IPPONお題セレクトボックスへの反映 (state.ipponQuestions または state.questions 等の想定)
+            const ipponSelect = document.getElementById('ippon-question-select');
+            if (ipponSelect) {
+                const currentVal = ipponSelect.value;
+                ipponSelect.innerHTML = '<option value="">-- 保存済みお題から選択 --</option>';
+                const ipponList = state.ipponQuestions || state.questions || [];
+                ipponList.forEach((item) => {
+                    const qText = typeof item === 'object' ? item.q : item;
+                    const opt = document.createElement('option');
+                    opt.value = qText;
+                    opt.innerText = qText;
+                    if (qText === currentVal) opt.selected = true;
+                    ipponSelect.appendChild(opt);
+                });
+            }
+
             // スコア・順位の反映
             const sortedScores = Object.entries(state.scores || {}).sort((a, b) => b[1] - a[1]);
             const allScoresEl = document.getElementById('ippon-all-scores');
@@ -103,7 +143,7 @@ socket.on('updateState', (state) => {
                 allScoresEl.innerHTML = 'まだスコアがありません';
             }
 
-            // IPPON側の解答権保持者（回答中プレイヤーなどがいれば）
+            // IPPON側の解答権保持者
             const ipponFastestEl = document.getElementById('ippon-fastest');
             if (state.currentPresenter) {
                 ipponFastestEl.innerText = state.currentPresenter;
@@ -118,7 +158,8 @@ socket.on('updateState', (state) => {
 
             const select = document.getElementById('question-select');
             select.innerHTML = '';
-            state.questions.forEach((item, index) => {
+            const buzzerList = state.questions || [];
+            buzzerList.forEach((item, index) => {
                 const opt = document.createElement('option');
                 opt.value = index;
                 opt.innerText = `${index + 1}: ${item.q}`;
