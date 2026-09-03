@@ -25,6 +25,26 @@ function typeWriter(text, elementId, speed = 80) {
     }, speed);
 }
 
+// IPPONグランプリの投票数に応じてカードをキュッと狭める処理
+function updateIpponCardWidth(votes) {
+    const card = document.getElementById('ippon-stage-card');
+    if (!card) return;
+    
+    const totalVotes = Object.keys(votes || {}).length;
+    const maxWidthBase = 900;
+    const shrinkStep = 60;
+    const minWidth = 400;
+    
+    const newMaxWidth = Math.max(minWidth, maxWidthBase - (totalVotes * shrinkStep));
+    card.style.maxWidth = `${newMaxWidth}px`;
+
+    if (totalVotes > 0) {
+        card.style.transform = `scale(${1 - (totalVotes * 0.012)})`;
+    } else {
+        card.style.transform = 'scale(1)';
+    }
+}
+
 socket.on('updateState', (state) => {
     const qrContainer = document.getElementById('qr-container');
     const displayContainer = document.getElementById('display-container');
@@ -55,13 +75,31 @@ socket.on('updateState', (state) => {
 
         if (state.mode === 'ippon') {
             if (state.status === 'waiting') {
-                title.innerText = '待機中'; content.innerText = '次の問題をお待ちください';
+                title.innerText = '待機中';
+                content.innerText = '次の問題をお待ちください';
             } else if (state.status === 'question' || state.status === 'voting') {
-                title.innerText = state.status === 'question' ? '【お題】' : '【投票中】';
-                content.innerText = state.currentQuestion;
+                if (typingTimer) clearInterval(typingTimer);
+                
+                // IPPON：お題＆回答者が決定している（ボタンが押された）場合は「プレイヤー名のみ」を大きく表示
+                if (state.currentPresenter) {
+                    title.innerText = state.status === 'voting' ? '【投票受付中】' : '【回答者】';
+                    
+                    let html = `<div id="ippon-stage-card" class="stage-card" style="width: 100%; max-width: 900px; background: linear-gradient(135deg, #2c3e50, #34495e); border: 4px solid #f39c12; border-radius: 16px; padding: 40px 30px; margin: 20px auto; box-sizing: border-box; transition: max-width 0.4s ease, transform 0.3s ease;">`;
+                    html += `<div style="font-size: 1.2rem; color: #f1c40f; margin-bottom: 15px;">お題: ${state.currentQuestion}</div>`;
+                    html += `<div style="font-size: 3.5rem; font-weight: bold; color: #ff6b6b; word-break: break-all;">${state.currentPresenter} さん</div>`;
+                    html += `</div>`;
+                    content.innerHTML = html;
+
+                    // 現在の投票状況に合わせて即時反映
+                    updateIpponCardWidth(state.votes);
+                } else {
+                    // まだ誰もボタンを押していない（お題提示直後など）
+                    title.innerText = '【お題】';
+                    content.innerHTML = `<div id="ippon-stage-card" class="stage-card" style="width: 100%; max-width: 900px; background: linear-gradient(135deg, #2c3e50, #34495e); border: 4px solid #f39c12; border-radius: 16px; padding: 40px 30px; margin: 20px auto; box-sizing: border-box; transition: max-width 0.4s ease, transform 0.3s ease;"><div style="font-size: 2.8rem; font-weight: bold; color: #fff;">${state.currentQuestion}</div></div>`;
+                }
             } else if (state.status === 'result') {
                 title.innerText = '【判定結果】';
-                let totalPoints = Object.values(state.votes).reduce((a, b) => a + b, 0);
+                let totalPoints = Object.values(state.votes || {}).reduce((a, b) => a + b, 0);
                 content.innerText = `合計得点: ${totalPoints} 票`;
                 if (totalPoints >= 5) effect.innerHTML = '<h1 class="ippon-flash">一本！！</h1>';
             }
@@ -107,6 +145,11 @@ socket.on('updateState', (state) => {
         scoreHtml += '</ul>';
         document.getElementById('content-area').innerHTML = scoreHtml;
     }
+});
+
+// 投票データがリアルタイムで更新されたときの処理（IPPON枠縮小ロジック連動）
+socket.on('updateVotes', (votes) => {
+    updateIpponCardWidth(votes);
 });
 
 socket.on('buzzerPressed', (queue) => {

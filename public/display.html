@@ -5,6 +5,30 @@
     <title>演出・お題画面</title>
     <link rel="stylesheet" href="./css/style.css">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <style>
+        /* お題カード用の拡張スタイル（投票で狭まるロジック対応） */
+        .stage-card {
+            width: 100%;
+            max-width: 900px;
+            background: linear-gradient(135deg, #2c3e50, #34495e);
+            border: 4px solid #f39c12;
+            border-radius: 16px;
+            padding: 50px 40px;
+            box-shadow: 0 15px 35px rgba(243, 156, 18, 0.3);
+            transition: max-width 0.4s cubic-bezier(0.25, 1, 0.5, 1), transform 0.3s ease;
+            box-sizing: border-box;
+            margin: 20px auto;
+            text-align: center;
+        }
+
+        .stage-text {
+            font-size: 3rem;
+            font-weight: bold;
+            line-height: 1.4;
+            color: #ffffff;
+            word-break: break-all;
+        }
+    </style>
 </head>
 <body class="display-body">
     <div id="qr-container" style="display:none; text-align: center;">
@@ -12,7 +36,7 @@
         <div id="qr-codes" style="display: flex; justify-content: center; gap: 50px; margin-top: 30px;"></div>
     </div>
 
-    <div id="display-container" style="display:none;">
+    <div id="display-container" style="display:none; width: 100%;">
         <h1 id="main-title">待機中</h1>
         <div id="content-area"></div>
         <div id="effect-area"></div>
