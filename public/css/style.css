@@ -181,14 +181,15 @@ input:focus, select:focus {
     box-shadow: 0 0 0 4px rgba(140, 130, 117, 0.12);
 }
 
-/* お題文・問題文表示エリア（HTMLのインラインを上書きしてテーマカラーの枠線を強制適用） */
+/* お題文・問題文表示エリア（文字の大きさはそのままで、高さをちょうど3行分に固定） */
 #ippon-current-q {
-    min-height: 4.8em !important;
-    max-height: 140px !important;
+    height: calc(1.8em * 3 + 32px) !important;
+    min-height: unset !important;
+    max-height: unset !important;
     overflow-y: auto !important;
     padding: 16px !important;
     box-sizing: border-box !important;
-    line-height: 1.6 !important;
+    line-height: 1.8 !important;
     font-size: 18px !important;
     background-color: #fffdf5 !important;
     border: 3px solid #ffd400 !important;
@@ -198,12 +199,13 @@ input:focus, select:focus {
 }
 
 #ctrl-current-q {
-    min-height: 4.8em !important;
-    max-height: 140px !important;
+    height: calc(1.8em * 3 + 32px) !important;
+    min-height: unset !important;
+    max-height: unset !important;
     overflow-y: auto !important;
     padding: 16px !important;
     box-sizing: border-box !important;
-    line-height: 1.6 !important;
+    line-height: 1.8 !important;
     font-size: 18px !important;
     background-color: #fff5f5 !important;
     border: 3px solid #ff3333 !important;
