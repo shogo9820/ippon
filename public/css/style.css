@@ -214,24 +214,13 @@ input:focus, select:focus {
     font-weight: 500 !important;
 }
 
-.display-body {
-    background-color: #161618;
-    color: #f1f1f3;
-    text-align: center;
-    height: 100vh;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    margin: 0;
-    padding: 20px;
-}
-
 #main-title {
-    font-size: 4rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    margin-bottom: 20px;
+    font-size: 2.2rem !important;
+    font-weight: bold;
+    color: #ffffff;
+    margin-bottom: 10px;
+    letter-spacing: 0.05em;
+    text-shadow: 0 2px 4px rgba(0,0,0,0.5);
 }
 
 #content-area {
@@ -286,4 +275,99 @@ input:focus, select:focus {
 
 .vote-btn:active {
     background-color: #e6be00;
+}
+
+/* ==========================================
+   演出画面：本家 IPPONグランプリ風 6角形ステージ
+   ========================================== */
+
+.display-body {
+    background-color: #000000 !important;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+    padding: 20px;
+}
+
+#display-container {
+    width: 100vw !important;
+    height: 100vh !important;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    box-sizing: border-box;
+    padding: 20px;
+}
+
+/* 6角形ステージカードのベースデザイン */
+.stage-card {
+    position: relative !important;
+    width: 94vw !important;
+    max-width: 1500px !important;
+    height: 78vh !important;
+    margin: 0 auto !important;
+    padding: 60px !important;
+    box-sizing: border-box !important;
+    display: flex !important;
+    flex-direction: column !important;
+    justify-content: center !important;
+    align-items: center !important;
+    text-align: center !important;
+    /* 本家の四隅を斜めに削いだ6角形 (clip-path) */
+    clip-path: polygon(
+        110px 0%, calc(100% - 110px) 0%, 
+        100% 110px, 100% calc(100% - 110px), 
+        calc(100% - 110px) 100%, 110px 100%, 
+        0% calc(100% - 110px), 0% 110px
+    ) !important;
+    transition: max-width 0.4s ease, transform 0.3s ease !important;
+    border: none !important;
+}
+
+/* --- 1. IPPONグランプリモード（黄色背景 ＆ 黒の極太ストライプ額縁） --- */
+.stage-card.ippon-card,
+.stage-card.ippon-theme, 
+#display-container.ippon-mode .stage-card {
+    background-color: #ffd400 !important;
+    color: #000000 !important;
+    /* 外側の黒背景と合わせ、内側に何重もの極太ストライプ（黒・黄色・黒）をBOXシャドウで再現 */
+    box-shadow: 
+        inset 0 0 0 14px #000000, 
+        inset 0 0 0 24px #ffd400, 
+        inset 0 0 0 42px #000000, 
+        0 25px 60px rgba(0,0,0,0.9) !important;
+}
+
+/* --- 2. 早押しクイズモード（白背景 ＆ 赤の極太ストライプ額縁） --- */
+.stage-card.quiz-card,
+.stage-card.quiz-theme, 
+#display-container.quiz-mode .stage-card {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    /* クイズモード用の赤・白・赤ストライプ額縁 */
+    box-shadow: 
+        inset 0 0 0 14px #ff3333, 
+        inset 0 0 0 24px #ffffff, 
+        inset 0 0 0 42px #ff3333, 
+        0 25px 60px rgba(0,0,0,0.9) !important;
+}
+
+/* カード内のテキスト（お題・問題文など） */
+.stage-text {
+    font-size: 4.2rem !important;
+    font-weight: 900 !important;
+    line-height: 1.5 !important;
+    letter-spacing: -0.01em;
+    word-break: break-all;
+    text-shadow: none !important;
+    color: #000000 !important;
+}
+
+.stage-card div {
+    text-shadow: none !important;
 }
