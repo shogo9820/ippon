@@ -17,7 +17,9 @@
 
         <div id="recruit-section" class="section" style="display:none;">
             <h3>2. 参加者待機中</h3>
-            <button onclick="startGame()" style="background-color: #28a745;">ゲームスタート！</button>
+            <button onclick="startGame()" style="background-color: #28a745; margin-bottom: 10px;">ゲームスタート！</button>
+            <!-- モード選択（タイトル）に戻るボタン -->
+            <button onclick="resetGame()" style="background-color: #6c757d;">モード選択に戻る</button>
         </div>
 
         <!-- フェーズ3: ゲーム本編 -->
@@ -26,24 +28,20 @@
             <!-- IPPONグランプリ制御画面 -->
             <div id="ippon-controls" style="display:none; display: flex; flex-direction: column; min-height: calc(100vh - 60px); box-sizing: border-box;">
                 
-                <!-- 1. ヘッダー ＆ ゲーム終了ボタン -->
                 <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; padding-bottom: 8px; border-bottom: 2px solid #ddd; flex-shrink: 0;">
                     <h2 style="margin: 0; font-size: 1.1rem;">IPPONグランプリ 制御</h2>
                     <button onclick="requestRanking()" style="background-color: #dc3545; width: auto; padding: 6px 10px; margin: 0; font-size: 0.85rem;">ゲーム終了ボタン</button>
                 </div>
 
-                <!-- 2. 現在のお題開始時点からの経過時間 -->
                 <div style="margin-bottom: 10px; flex-shrink: 0; background: #e9ecef; padding: 6px 10px; border-radius: 4px; font-size: 0.9rem;">
                     経過時間: <span id="ippon-timer" style="font-weight: bold; color: #333;">00:00</span>
                 </div>
 
-                <!-- 3. 現在のお題欄 -->
                 <div style="margin-bottom: 10px; flex-shrink: 0;">
                     <label style="font-weight: bold; display: block; margin-bottom: 3px; font-size: 0.85rem;">現在のお題欄</label>
                     <div id="ippon-current-q" style="background: #f8f9fa; padding: 10px; border-radius: 4px; border: 1px solid #ddd; color: #007bff; font-size: 1rem; max-height: 80px; overflow-y: auto;">未設定</div>
                 </div>
 
-                <!-- 4. 次のお題（入力欄 ＆ 出題ボタン） -->
                 <div style="margin-bottom: 10px; flex-shrink: 0;">
                     <label style="font-weight: bold; display: block; margin-bottom: 3px; font-size: 0.85rem;">次のお題</label>
                     <div style="display: flex; gap: 8px; align-items: center;">
@@ -52,12 +50,10 @@
                     </div>
                 </div>
 
-                <!-- 5. お題を追加ボタン（モーダル表示） -->
                 <div style="margin-bottom: 10px; flex-shrink: 0;">
                     <button onclick="openIpponAddModal()" style="background-color: #17a2b8; padding: 10px; margin: 0; font-size: 0.95rem;">お題を追加ボタン</button>
                 </div>
 
-                <!-- 6. 投票モード設定 -->
                 <div style="margin-bottom: 10px; flex-shrink: 0;">
                     <label style="font-weight: bold; display: block; margin-bottom: 3px; font-size: 0.85rem;">投票モード設定</label>
                     <select id="vote-mode-select" onchange="changeVoteMode()" style="margin: 0; padding: 6px; font-size: 0.9rem;">
@@ -67,19 +63,16 @@
                     </select>
                 </div>
 
-                <!-- 7. 現在の参加者全員の得点と順位 -->
                 <div style="margin-bottom: 10px; flex-shrink: 0;">
                     <label style="font-weight: bold; display: block; margin-bottom: 3px; font-size: 0.85rem; color: #383d41;">現在の参加者全員の得点と順位</label>
                     <div id="ippon-all-scores" style="background: #e2e3e5; padding: 8px 10px; border-radius: 4px; border: 1px solid #d6d8db; font-size: 0.9rem; max-height: 70px; overflow-y: auto;">まだスコアがありません</div>
                 </div>
 
-                <!-- 8. 解答権保有者 -->
                 <div style="margin-bottom: 12px; flex-shrink: 0;">
                     <label style="font-weight: bold; display: block; margin-bottom: 3px; font-size: 0.85rem; color: #856404;">解答権保有者</label>
                     <div id="ippon-fastest" style="background: #fff3cd; padding: 8px 10px; border-radius: 4px; border: 1px solid #ffeeba; font-weight: bold; font-size: 1rem; color: #dc3545;">なし</div>
                 </div>
 
-                <!-- 9. 投票終了ボタン（下部配置） -->
                 <div style="flex-shrink: 0; margin-top: auto;">
                     <button onclick="finishVoting()" style="background-color: #28a745; margin: 0; padding: 12px; font-size: 1rem;">投票終了ボタン</button>
                 </div>

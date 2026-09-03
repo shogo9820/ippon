@@ -3,6 +3,7 @@ const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
 const os = require('os');
+const quizData = require('./data.js');
 
 const app = express();
 const server = http.createServer(app);
@@ -31,10 +32,8 @@ let gameState = {
     phase: 'setup', // 'setup' -> 'recruiting' -> 'playing' -> 'ranking'
     mode: null,     // 'ippon' または 'buzzer'
     status: 'waiting', 
-    questions: [
-      { q: '日本の首都はどこ？', a: '東京' },
-      { q: '1+1は？', a: '2' }
-    ],
+    questions: quizData.buzzerQuestions || [],
+    ipponQuestions: quizData.ipponQuestions || [],
     currentQuestionIndex: 0,
     currentQuestion: '',
     currentAnswer: '',
@@ -170,7 +169,8 @@ io.on('connection', (socket) => {
             phase: 'setup',
             mode: null,
             status: 'waiting',
-            questions: gameState.questions,
+            questions: quizData.buzzerQuestions || [],
+            ipponQuestions: quizData.ipponQuestions || [],
             currentQuestionIndex: 0,
             currentQuestion: '',
             currentAnswer: '',
