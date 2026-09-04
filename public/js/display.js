@@ -170,18 +170,25 @@ function renderScreen(state) {
           effect.innerHTML = '<h1 class="ippon-flash">一本！！</h1>';
       }
     } else if (state.mode === "buzzer") {
+      // --- 早押しクイズの表示制御 ---
       if (state.status === "result") {
-        let inner = `<div style="font-size: 4.5rem; font-weight: 900; color: #2e9e45;">正解！得点加算！</div>`;
+        // 正解ボタンが押された瞬間の表示：問題文と「答え」を大きく表示する
+        let inner = `
+          <div style="font-size: 3rem; font-weight: bold; color: #2e9e45; margin-bottom: 20px;">正解！得点加算！</div>
+          <div style="font-size: 2.2rem; color: #333333; margin-bottom: 10px;">問題: ${state.currentQuestion || ''}</div>
+          <div style="font-size: 3.5rem; font-weight: 900; color: #ff3333;">答え: ${state.currentAnswer || ''}</div>
+        `;
         content.innerHTML = createStageHtml(inner, "buzzer");
-      } else if (state.buzzerQueue && state.buzzerQueue.length > 0) {
+      } else if (state.status === "answered" || (state.buzzerQueue && state.buzzerQueue.length > 0)) {
+        // 早押しされて解答権を持った状態（問題文を消して名前を映す）
         if (typingTimer) clearInterval(typingTimer);
-        const fastest = state.buzzerQueue[0].playerName;
+        const fastest = state.buzzerQueue && state.buzzerQueue.length > 0 ? state.buzzerQueue[0].playerName : '';
 
         let inner = `
                     <div style="font-size: 2.5rem; color: #ff3333; margin-bottom: 20px; font-weight: bold;">回答権獲得！</div>
                     <div style="font-size: 5.5rem; font-weight: 900; color: #000000;">${fastest} さん</div>
                 `;
-        if (state.buzzerQueue.length > 1) {
+        if (state.buzzerQueue && state.buzzerQueue.length > 1) {
           inner += `<div style="font-size: 1.8rem; margin-top: 30px; color: #555555;">2位以降: ${state.buzzerQueue
             .slice(1)
             .map((p) => p.playerName)
@@ -189,6 +196,7 @@ function renderScreen(state) {
         }
         content.innerHTML = createStageHtml(inner, "buzzer");
       } else {
+        // 出題中（問題文をタイピング表示）
         let inner = `<div id="typing-text" class="stage-text"></div>`;
         content.innerHTML = createStageHtml(inner, "buzzer");
         if (state.status === "question" && state.currentQuestion) {
@@ -237,6 +245,7 @@ socket.on("updateVotes", (votes) => {
 socket.on("buzzerPressed", (queue) => {
   if (window.lastState) {
     window.lastState.buzzerQueue = queue;
+    window.lastState.status = 'answered'; // 即座に解答権状態に更新
     renderScreen(window.lastState);
   }
 });
