@@ -29,8 +29,8 @@ const PORT = process.env.PORT || 3000;
 const baseUrl = `http://${getLocalIp()}:${PORT}`;
 
 let gameState = {
-    phase: 'setup', // 'setup' -> 'recruiting' -> 'playing' -> 'ranking'
-    mode: null,     // 'ippon' または 'buzzer'
+    phase: 'setup', 
+    mode: null,     
     status: 'waiting', 
     questions: quizData.buzzerQuestions || [],
     ipponQuestions: quizData.ipponQuestions || [],
@@ -38,19 +38,38 @@ let gameState = {
     currentQuestion: '',
     currentAnswer: '',
     votes: {},
-    buzzerQueue: [], // 早押し順位キュー [{playerName, timestamp}]
+    buzzerQueue: [], 
     voteMode: '10-1',
     scores: {},
     baseUrl: baseUrl 
 };
 
+let connectedUsers = [];
+
 io.on('connection', (socket) => {
     socket.emit('updateState', gameState);
+    socket.emit('updateUserList', connectedUsers);
+
+    socket.on('joinUser', (data) => {
+        const existingUserIndex = connectedUsers.findIndex(u => u.id === socket.id);
+        if (existingUserIndex >= 0) {
+            connectedUsers[existingUserIndex].name = data.name;
+            connectedUsers[existingUserIndex].role = data.role;
+        } else {
+            connectedUsers.push({
+                id: socket.id,
+                name: data.name,
+                role: data.role
+            });
+        }
+        io.emit('updateUserList', connectedUsers);
+    });
 
     socket.on('selectMode', (mode) => {
         gameState.phase = 'recruiting';
         gameState.mode = mode;
         gameState.scores = {};
+        gameState.currentQuestionIndex = 0; // モード選択時にインデックスをリセット
         io.emit('updateState', gameState);
     });
 
@@ -60,19 +79,41 @@ io.on('connection', (socket) => {
         io.emit('updateState', gameState);
     });
 
-    // 共通・IPPONお題送信用（お題を出した瞬間から自動で投票状態='voting'へ移行）
+    // IPPONのお題を出す処理（テキストが渡されなければ配列から自動で次へ進める）
     socket.on('showQuestionText', (questionText) => {
-        gameState.status = (gameState.mode === 'ippon') ? 'voting' : 'question';
-        gameState.currentQuestion = questionText;
+        if (gameState.mode === 'ippon') {
+            if (!questionText) {
+                // テキストが空なら自動で配列から次のIPPONお題を取得
+                if (gameState.ipponQuestions && gameState.ipponQuestions.length > 0) {
+                    gameState.currentQuestionIndex = (gameState.currentQuestionIndex + 1) % gameState.ipponQuestions.length;
+                    gameState.currentQuestion = gameState.ipponQuestions[gameState.currentQuestionIndex];
+                }
+            } else {
+                // 直接入力やセレクトで指定されたテキストがある場合
+                gameState.currentQuestion = questionText;
+            }
+            gameState.status = 'voting';
+            gameState.currentPresenter = '';
+        } else {
+            gameState.status = 'question';
+            gameState.currentQuestion = questionText;
+        }
         gameState.votes = {};
         gameState.buzzerQueue = [];
         io.emit('updateState', gameState);
     });
 
-    // 早押し用問題の動的追加
     socket.on('addQuestion', (data) => {
         gameState.questions.push({ q: data.q, a: data.a });
         io.emit('updateState', gameState);
+    });
+
+    // IPPONのお題追加用
+    socket.on('addIpponQuestion', (qText) => {
+        if (qText) {
+            gameState.ipponQuestions.push(qText);
+            io.emit('updateState', gameState);
+        }
     });
 
     socket.on('setVoteMode', (voteMode) => {
@@ -80,14 +121,42 @@ io.on('connection', (socket) => {
         io.emit('updateState', gameState);
     });
 
-    // 早押し用リストから問題出題
+    // 早押しクイズ用の出題処理
     socket.on('showQuestionByIndex', (index) => {
-        if (gameState.questions[index]) {
-            gameState.currentQuestionIndex = index;
-            gameState.currentQuestion = gameState.questions[index].q;
-            gameState.currentAnswer = gameState.questions[index].a;
+        if (gameState.questions && gameState.questions.length > 0) {
+            if (index === undefined || index === '' || index === null) {
+                gameState.currentQuestionIndex = (gameState.currentQuestionIndex + 1) % gameState.questions.length;
+            } else {
+                gameState.currentQuestionIndex = parseInt(index, 10);
+            }
+
+            if (gameState.questions[gameState.currentQuestionIndex]) {
+                gameState.currentQuestion = gameState.questions[gameState.currentQuestionIndex].q;
+                gameState.currentAnswer = gameState.questions[gameState.currentQuestionIndex].a;
+            }
         }
         gameState.status = 'question';
+        gameState.votes = {};
+        gameState.buzzerQueue = [];
+        io.emit('updateState', gameState);
+    });
+
+    socket.on('nextQuestion', () => {
+        if (gameState.mode === 'buzzer') {
+            if (gameState.questions && gameState.questions.length > 0) {
+                gameState.currentQuestionIndex = (gameState.currentQuestionIndex + 1) % gameState.questions.length;
+                const nextQ = gameState.questions[gameState.currentQuestionIndex];
+                gameState.currentQuestion = nextQ.q;
+                gameState.currentAnswer = nextQ.a;
+            }
+        } else if (gameState.mode === 'ippon') {
+            if (gameState.ipponQuestions && gameState.ipponQuestions.length > 0) {
+                gameState.currentQuestionIndex = (gameState.currentQuestionIndex + 1) % gameState.ipponQuestions.length;
+                gameState.currentQuestion = gameState.ipponQuestions[gameState.currentQuestionIndex];
+                gameState.currentPresenter = '';
+            }
+        }
+        gameState.status = (gameState.mode === 'ippon') ? 'voting' : 'question';
         gameState.votes = {};
         gameState.buzzerQueue = [];
         io.emit('updateState', gameState);
@@ -116,7 +185,6 @@ io.on('connection', (socket) => {
         io.emit('updateState', gameState);
     });
 
-    // 早押しボタン受付（同時押し対応・重複防止）
     socket.on('pressBuzzer', (data) => {
         if (gameState.status === 'question' && gameState.mode === 'buzzer') {
             const alreadyPressed = gameState.buzzerQueue.some(p => p.playerName === data.playerName);
@@ -134,7 +202,6 @@ io.on('connection', (socket) => {
         }
     });
 
-    // 早押し正解判定（得点加算）
     socket.on('correctAnswer', (playerName) => {
         if (!gameState.scores[playerName]) gameState.scores[playerName] = 0;
         gameState.scores[playerName] += 1;
@@ -142,7 +209,6 @@ io.on('connection', (socket) => {
         io.emit('updateState', gameState);
     });
 
-    // 早押し不正解判定（お手付き：先頭の人間を除外して早押し再開）
     socket.on('wrongAnswer', () => {
         gameState.buzzerQueue.shift();
         gameState.status = 'question';
@@ -181,6 +247,11 @@ io.on('connection', (socket) => {
             baseUrl: baseUrl
         };
         io.emit('updateState', gameState);
+    });
+
+    socket.on('disconnect', () => {
+        connectedUsers = connectedUsers.filter(u => u.id !== socket.id);
+        io.emit('updateUserList', connectedUsers);
     });
 });
 

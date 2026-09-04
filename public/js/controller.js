@@ -9,15 +9,22 @@ function changeVoteMode() { socket.emit('setVoteMode', document.getElementById('
 function finishVoting() { socket.emit('finishVoting'); }
 function endQuestion() { socket.emit('endQuestion'); }
 
-function showIpponQuestion() {
-    const qText = document.getElementById('ippon-question-input').value;
-    if (qText) {
-        socket.emit('showQuestionText', qText);
-        startIpponTimer();
-    }
+function nextQuestion() {
+    socket.emit('nextQuestion');
 }
 
-// IPPONお題セレクトで選択されたものをテキストボックスに反映
+// IPPONの「お題を出す」ボタン：入力がなければ空文字を送り、サーバー側で自動次へループさせる
+function showIpponQuestion() {
+    const input = document.getElementById('ippon-question-input');
+    const qText = input ? input.value : '';
+    
+    socket.emit('showQuestionText', qText);
+    startIpponTimer();
+    
+    // 次回のためにインプット欄をクリアしておく（自動進行を快適にするため）
+    if (input) input.value = '';
+}
+
 function onIpponSelectChange() {
     const select = document.getElementById('ippon-question-select');
     const input = document.getElementById('ippon-question-input');
@@ -57,7 +64,6 @@ function addIpponQuestion() {
     }
 }
 
-// モダル制御 (早押し用)
 function openAddModal() {
     document.getElementById('add-modal').style.display = 'flex';
 }
@@ -80,8 +86,7 @@ function addQuestion() {
 }
 
 function startSelectedQuestion() {
-    const idx = document.getElementById('question-select').value;
-    socket.emit('showQuestionByIndex', idx);
+    socket.emit('showQuestionByIndex');
 }
 
 function judgeCorrect() {
@@ -118,12 +123,11 @@ socket.on('updateState', (state) => {
             document.getElementById('vote-mode-select').value = state.voteMode;
             document.getElementById('ippon-current-q').innerText = state.currentQuestion || '未設定';
 
-            // IPPONお題セレクトボックスへの反映 (state.ipponQuestions または state.questions 等の想定)
             const ipponSelect = document.getElementById('ippon-question-select');
             if (ipponSelect) {
                 const currentVal = ipponSelect.value;
                 ipponSelect.innerHTML = '<option value="">-- 保存済みお題から選択 --</option>';
-                const ipponList = state.ipponQuestions || state.questions || [];
+                const ipponList = state.ipponQuestions || [];
                 ipponList.forEach((item) => {
                     const qText = typeof item === 'object' ? item.q : item;
                     const opt = document.createElement('option');
@@ -134,7 +138,6 @@ socket.on('updateState', (state) => {
                 });
             }
 
-            // スコア・順位の反映
             const sortedScores = Object.entries(state.scores || {}).sort((a, b) => b[1] - a[1]);
             const allScoresEl = document.getElementById('ippon-all-scores');
             if (sortedScores.length > 0) {
@@ -143,7 +146,6 @@ socket.on('updateState', (state) => {
                 allScoresEl.innerHTML = 'まだスコアがありません';
             }
 
-            // IPPON側の解答権保持者
             const ipponFastestEl = document.getElementById('ippon-fastest');
             if (state.currentPresenter) {
                 ipponFastestEl.innerText = state.currentPresenter;
