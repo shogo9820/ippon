@@ -138,25 +138,10 @@ function renderScreen(state) {
     if (effect) effect.innerHTML = "";
 
     if (state.mode === "ippon") {
+      // --- IPPONグランプリモードの表示制御 ---
       if (state.status === "waiting") {
         const inner = `<div style="font-size: 4rem; font-weight: 900; color: #000000;">次の問題をお待ちください</div>`;
         content.innerHTML = createStageHtml(inner, "ippon");
-      } else if (state.status === "question" || state.status === "voting") {
-        if (typingTimer) clearInterval(typingTimer);
-
-        if (state.currentPresenter) {
-          let inner = `
-                        <div style="font-size: 2.5rem; color: #000000; margin-bottom: 20px; font-weight: bold;">お題: ${state.currentQuestion}</div>
-                        <div style="font-size: 5.5rem; font-weight: 900; color: #000000;">${state.currentPresenter} さん</div>
-                    `;
-          content.innerHTML = createStageHtml(inner, "ippon");
-          updateIpponCardWidth(state.votes);
-        } else {
-          let inner = `
-                        <div class="stage-text">${state.currentQuestion}</div>
-                    `;
-          content.innerHTML = createStageHtml(inner, "ippon");
-        }
       } else if (state.status === "result") {
         let totalPoints = Object.values(state.votes || {}).reduce(
           (a, b) => a + b,
@@ -166,13 +151,41 @@ function renderScreen(state) {
                     <div style="font-size: 5rem; font-weight: 900; color: #000000;">合計得点: ${totalPoints} 票</div>
                 `;
         content.innerHTML = createStageHtml(inner, "ippon");
+        updateIpponCardWidth(state.votes);
         if (totalPoints >= 5 && effect)
           effect.innerHTML = '<h1 class="ippon-flash">一本！！</h1>';
+      } else if (state.status === "answered" || (state.buzzerQueue && state.buzzerQueue.length > 0) || state.status === "voting") {
+        // 早押しされて解答権を取った状態、または投票中の状態
+        if (typingTimer) clearInterval(typingTimer);
+        const fastest = state.buzzerQueue && state.buzzerQueue.length > 0 ? state.buzzerQueue[0].playerName : (state.currentPresenter || '');
+
+        let inner = `
+          <div style="font-size: 2.5rem; color: #333333; margin-bottom: 20px; font-weight: bold;">お題: ${state.currentQuestion || ''}</div>
+          <div style="font-size: 5.5rem; font-weight: 900; color: #000000;">${fastest} さん</div>
+        `;
+        if (state.buzzerQueue && state.buzzerQueue.length > 1) {
+          inner += `<div style="font-size: 1.8rem; margin-top: 30px; color: #555555;">2位以降: ${state.buzzerQueue
+            .slice(1)
+            .map((p) => p.playerName)
+            .join(", ")}</div>`;
+        }
+        content.innerHTML = createStageHtml(inner, "ippon");
+        updateIpponCardWidth(state.votes);
+      } else {
+        // 出題中（問題文をタイピング表示）
+        let inner = `<div id="typing-text" class="stage-text"></div>`;
+        content.innerHTML = createStageHtml(inner, "ippon");
+        updateIpponCardWidth(state.votes);
+        if (state.status === "question" && state.currentQuestion) {
+          typeWriter(state.currentQuestion, "typing-text", 100);
+        } else {
+          let waitInner = `<div class="stage-text">問題準備中...</div>`;
+          content.innerHTML = createStageHtml(waitInner, "ippon");
+        }
       }
     } else if (state.mode === "buzzer") {
-      // --- 早押しクイズの表示制御 ---
+      // --- 早押しクイズモードの表示制御 ---
       if (state.status === "result") {
-        // 正解ボタンが押された瞬間の表示：問題文と「答え」を大きく表示する
         let inner = `
           <div style="font-size: 3rem; font-weight: bold; color: #2e9e45; margin-bottom: 20px;">正解！得点加算！</div>
           <div style="font-size: 2.2rem; color: #333333; margin-bottom: 10px;">問題: ${state.currentQuestion || ''}</div>
@@ -180,7 +193,6 @@ function renderScreen(state) {
         `;
         content.innerHTML = createStageHtml(inner, "buzzer");
       } else if (state.status === "answered" || (state.buzzerQueue && state.buzzerQueue.length > 0)) {
-        // 早押しされて解答権を持った状態（問題文を消して名前を映す）
         if (typingTimer) clearInterval(typingTimer);
         const fastest = state.buzzerQueue && state.buzzerQueue.length > 0 ? state.buzzerQueue[0].playerName : '';
 
@@ -196,7 +208,6 @@ function renderScreen(state) {
         }
         content.innerHTML = createStageHtml(inner, "buzzer");
       } else {
-        // 出題中（問題文をタイピング表示）
         let inner = `<div id="typing-text" class="stage-text"></div>`;
         content.innerHTML = createStageHtml(inner, "buzzer");
         if (state.status === "question" && state.currentQuestion) {
