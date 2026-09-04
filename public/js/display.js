@@ -154,14 +154,21 @@ function renderScreen(state) {
         updateIpponCardWidth(state.votes);
         if (totalPoints >= 5 && effect)
           effect.innerHTML = '<h1 class="ippon-flash">一本！！</h1>';
-      } else if (state.status === "answered" || (state.buzzerQueue && state.buzzerQueue.length > 0) || state.status === "voting") {
+      } else if (
+        state.status === "answered" ||
+        (state.buzzerQueue && state.buzzerQueue.length > 0) ||
+        state.status === "voting"
+      ) {
         // 早押しされて解答権を取った状態、または投票中の状態
         if (typingTimer) clearInterval(typingTimer);
-        const fastest = state.buzzerQueue && state.buzzerQueue.length > 0 ? state.buzzerQueue[0].playerName : (state.currentPresenter || '');
+        const fastest =
+          state.buzzerQueue && state.buzzerQueue.length > 0
+            ? state.buzzerQueue[0].playerName
+            : state.currentPresenter || "";
 
         let inner = `
-          <div style="font-size: 2.5rem; color: #333333; margin-bottom: 20px; font-weight: bold;">お題: ${state.currentQuestion || ''}</div>
-          <div style="font-size: 5.5rem; font-weight: 900; color: #000000;">${fastest} さん</div>
+         <div style="font-size: 2.5rem; color: #333333; margin-bottom: 20px; font-weight: bold;">お題: ${state.currentQuestion || ""}</div>
+         <div style="font-size: 5.5rem; font-weight: 900; color: #000000;">${fastest ? fastest + " さん" : ""}</div>
         `;
         if (state.buzzerQueue && state.buzzerQueue.length > 1) {
           inner += `<div style="font-size: 1.8rem; margin-top: 30px; color: #555555;">2位以降: ${state.buzzerQueue
@@ -188,13 +195,19 @@ function renderScreen(state) {
       if (state.status === "result") {
         let inner = `
           <div style="font-size: 3rem; font-weight: bold; color: #2e9e45; margin-bottom: 20px;">正解！得点加算！</div>
-          <div style="font-size: 2.2rem; color: #333333; margin-bottom: 10px;">問題: ${state.currentQuestion || ''}</div>
-          <div style="font-size: 3.5rem; font-weight: 900; color: #ff3333;">答え: ${state.currentAnswer || ''}</div>
+          <div style="font-size: 2.2rem; color: #333333; margin-bottom: 10px;">問題: ${state.currentQuestion || ""}</div>
+          <div style="font-size: 3.5rem; font-weight: 900; color: #ff3333;">答え: ${state.currentAnswer || ""}</div>
         `;
         content.innerHTML = createStageHtml(inner, "buzzer");
-      } else if (state.status === "answered" || (state.buzzerQueue && state.buzzerQueue.length > 0)) {
+      } else if (
+        state.status === "answered" ||
+        (state.buzzerQueue && state.buzzerQueue.length > 0)
+      ) {
         if (typingTimer) clearInterval(typingTimer);
-        const fastest = state.buzzerQueue && state.buzzerQueue.length > 0 ? state.buzzerQueue[0].playerName : '';
+        const fastest =
+          state.buzzerQueue && state.buzzerQueue.length > 0
+            ? state.buzzerQueue[0].playerName
+            : "";
 
         let inner = `
                     <div style="font-size: 2.5rem; color: #ff3333; margin-bottom: 20px; font-weight: bold;">回答権獲得！</div>
@@ -242,7 +255,7 @@ function renderScreen(state) {
   }
 }
 
-// サーバーからの状態変更を受け取る
+// サーバーからの状態変更を受け取る（ここを唯一の描画トリガーにする）
 socket.on("updateState", (state) => {
   window.lastState = state; // 現在の状態を保持
   renderScreen(state);
@@ -252,32 +265,28 @@ socket.on("updateVotes", (votes) => {
   updateIpponCardWidth(votes);
 });
 
-// 早押しボタンが押された瞬間のイベントをキャッチして即座に画面を更新する
-socket.on("buzzerPressed", (queue) => {
-  if (window.lastState) {
-    window.lastState.buzzerQueue = queue;
-    window.lastState.status = 'answered'; // 即座に解答権状態に更新
-    renderScreen(window.lastState);
-  }
-});
-
 // サーバーから送られてくるログインメンバーリストを処理して画面に表示
-socket.on('updateUserList', (users) => {
-    const loginListContainer = document.getElementById('login-users-list');
-    if (!loginListContainer) return;
+socket.on("updateUserList", (users) => {
+  const loginListContainer = document.getElementById("login-users-list");
+  if (!loginListContainer) return;
 
-    if (!users || users.length === 0) {
-        loginListContainer.innerHTML = '<p style="color: #aaa;">まだ誰もログインしていません...</p>';
-    } else {
-        loginListContainer.innerHTML = `
+  if (!users || users.length === 0) {
+    loginListContainer.innerHTML =
+      '<p style="color: #aaa;">まだ誰もログインしていません...</p>';
+  } else {
+    loginListContainer.innerHTML = `
             <p style="font-weight: bold; margin-bottom: 15px; font-size: 1.8rem;">ログイン完了メンバー (${users.length}人)</p>
             <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 12px; max-width: 1000px; margin: 0 auto;">
-                ${users.map(u => `
-                    <span style="background: rgba(255, 255, 255, 0.15); border: 2px solid ${u.role === 'buzzer' ? '#ff3333' : '#ffd400'}; padding: 8px 20px; border-radius: 30px; font-size: 1.3rem;">
-                        ${u.name} <span style="font-size: 0.9rem; opacity: 0.8; margin-left: 5px;">(${u.role === 'buzzer' ? '早押し' : '審査員'})</span>
+                ${users
+                  .map(
+                    (u) => `
+                    <span style="background: rgba(255, 255, 255, 0.15); border: 2px solid ${u.role === "buzzer" ? "#ff3333" : "#ffd400"}; padding: 8px 20px; border-radius: 30px; font-size: 1.3rem;">
+                        ${u.name} <span style="font-size: 0.9rem; opacity: 0.8; margin-left: 5px;">(${u.role === "buzzer" ? "早押し" : "審査員"})</span>
                     </span>
-                `).join('')}
+                `,
+                  )
+                  .join("")}
             </div>
         `;
-    }
+  }
 });

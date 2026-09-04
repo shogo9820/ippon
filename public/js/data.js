@@ -188,7 +188,7 @@ const quizData = {
       { id: 155, q: '製菓や調理において、卵白や生クリームに空気を抱き込ませて泡立て、ふんわりとした状態にすることを英語で何という？', a: 'ホイップ（または ホイッピング）' }
     ],
 
-ipponQuestions = [
+ipponQuestions : [
   { id: 1, text: '「…ここ、本当に遊園地か？」何があった？', imageUrl: null },
   { id: 2, text: '桃太郎が鬼ヶ島に行くのをやめた意外な理由とは？', imageUrl: null },
   { id: 3, text: '国民的アニメの新しい「次回予告」が一言でシュール。何と言った？', imageUrl: null },
