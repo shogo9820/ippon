@@ -1,0 +1,35 @@
+<!-- public/shared/buzzer.html -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>早押しボタン</title>
+    <link rel="stylesheet" href="css/buzzer.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+    <div class="buzzer-container">
+        <!-- プレイヤー名入力エリア -->
+        <div style="margin-bottom: 20px;">
+            <label style="display:block; margin-bottom:8px; font-weight:bold; color:#444;">プレイヤー名：</label>
+            <input type="text" id="player-name" placeholder="名前を入力してください" value="プレイヤー">
+        </div>
+
+        <!-- 現在の獲得スコア -->
+        <div class="score-display">
+            現在のスコア: <span id="my-score">0</span> pt
+        </div>
+
+        <!-- 状態テキスト表示 -->
+        <div id="buzzer-status" class="status-text">お名前を入力してお待ちください</div>
+
+        <!-- 巨大早押しボタン -->
+        <button id="buzzer-btn" onclick="pressBuzzer()">PUSH</button>
+    </div>
+
+    <!-- ロジックスクリプトの読み込み -->
+    <script src="js/buzzer.js"></script>
+</body>
+</html>

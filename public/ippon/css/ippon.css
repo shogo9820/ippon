@@ -1,0 +1,283 @@
+/* public/ippon/css/ippon.css */
+html,
+body {
+    margin: 0;
+    padding: 0;
+    width: 100vw;
+    height: 100vh;
+    background: #111111;
+    color: #ffffff;
+    font-family: sans-serif;
+    overflow: hidden;
+    box-sizing: border-box;
+}
+
+.flex-container {
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+    padding: 12px;
+    box-sizing: border-box;
+}
+
+.header {
+    display: flex;
+    gap: 10px;
+    height: 50px;
+}
+
+.btn-menu {
+    flex: 1;
+    padding: 10px;
+    font-weight: bold;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+    font-size: 0.9rem;
+}
+
+.bg-yellow {
+    background: #ffd400;
+    color: #000000;
+}
+
+.bg-red {
+    background: #dc3545;
+    color: #ffffff;
+}
+
+.timer-box {
+    text-align: center;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #ffae00;
+    height: 40px;
+    margin: 5px 0;
+}
+
+.monitor {
+    background: #1a1a1a;
+    padding: 12px;
+    border-radius: 8px;
+    border: 2px solid #ffd400;
+    flex: 1.4;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.label {
+    font-size: 0.8rem;
+    color: #aaaaaa;
+}
+
+.text-box {
+    font-size: 1.1rem;
+    font-weight: bold;
+    background: #333333;
+    padding: 8px;
+    border-radius: 4px;
+    overflow-y: auto;
+    max-height: 60px;
+    color: #ffffff;
+}
+
+.btn-submit {
+    width: 100%;
+    padding: 15px;
+    font-size: 1.3rem;
+    font-weight: bold;
+    border-radius: 8px;
+    border: none;
+    cursor: pointer;
+    height: 55px;
+    margin: 5px 0;
+}
+
+.rank-box {
+    background: #222222;
+    border-radius: 8px;
+    padding: 8px;
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+}
+
+.rank-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 6px;
+    border-bottom: 1px solid #333333;
+    font-size: 1rem;
+}
+
+.action-box {
+    display: flex;
+    gap: 12px;
+    height: 70px;
+    margin-top: 5px;
+}
+
+.btn-action {
+    flex: 1;
+    font-size: 1.4rem;
+    font-weight: bold;
+    border-radius: 10px;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-wrong {
+    background: #6c757d;
+    color: #ffffff;
+}
+
+.btn-correct {
+    background: #28a745;
+    color: #ffffff;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: rgba(0, 0, 0, 0.8);
+    justify-content: center;
+    align-items: center;
+    z-index: 100;
+}
+
+.modal-content {
+    background: #333333;
+    padding: 20px;
+    border-radius: 10px;
+    width: 85%;
+    max-width: 400px;
+    text-align: center;
+    color: #ffffff;
+}
+
+.modal-content textarea {
+    width: 100%;
+    height: 80px;
+    margin: 10px 0;
+    font-size: 1rem;
+    box-sizing: border-box;
+    background: #222222;
+    color: #ffffff;
+    border: 1px solid #555555;
+    padding: 8px;
+}
+
+.modal-content button {
+    width: 48%;
+    padding: 10px;
+    margin: 5px 1%;
+    font-weight: bold;
+    border-radius: 6px;
+    border: none;
+    cursor: pointer;
+}
+
+/* public/ippon/css/ippon.css */
+body {
+    font-family: "Hiragino Kaku Gothic StdN", "Arial Black", sans-serif;
+    margin: 0;
+    padding: 0;
+    background-color: #000000;
+    overflow: hidden;
+    height: 100vh;
+}
+
+#display-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* 6角形ステージカードのベースデザイン */
+.stage-card {
+    position: relative;
+    width: 98vw;
+    max-width: 1400px;
+    height: 98vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    box-sizing: border-box;
+
+    /* 四隅を斜めに削いだ、あの綺麗な6角形/8角形フレーム形状 */
+    clip-path: polygon(120px 0%, calc(100% - 120px) 0%,
+            100% 120px, 100% calc(100% - 120px),
+            calc(100% - 120px) 100%, 120px 100%,
+            0% calc(100% - 120px), 0% 120px);
+
+    /* 通常時の黄色背景（濃いめのゴールドイエロー） */
+    background-color: #ffcc00;
+    color: #000000;
+
+    /* 本家のような重厚な多重の黒と黄色のフレームエッジを多層BOXシャドウで完全再現 */
+    box-shadow:
+        inset 0 0 0 8px #000000,
+        inset 0 0 0 16px #fff2a3,
+        inset 0 0 0 28px #000000,
+        inset 0 0 0 36px #ffcc00,
+        inset 0 0 0 48px #000000,
+        0 30px 70px rgba(0, 0, 0, 0.9);
+
+    /* 投票による画面のキュッキュッという収縮アニメーションを滑らかにする設定 */
+    transition: max-width 0.2s cubic-bezier(0.25, 1, 0.5, 1), transform 0.2s cubic-bezier(0.25, 1, 0.5, 1), background-color 0.15s ease;
+}
+
+/* 💡 回答者がボタンを押した瞬間、枠の内側だけを真っ黒にするクラス */
+.stage-card.black-out {
+    background-color: #000000 !important;
+}
+
+/* 通常時のお題用極太テキスト */
+.stage-text {
+    font-size: 3.5rem;
+    font-weight: 900;
+    line-height: 1.5;
+    letter-spacing: -0.01em;
+    color: #000000;
+    padding: 0 80px;
+    word-break: break-all;
+}
+
+/* 💡 ブラックアウトしたとき用：中央に浮かび上がる黄色の回答者名テキスト */
+.presenter-text {
+    font-size: 6.5rem;
+    font-weight: 900;
+    color: #ffcc00;
+    letter-spacing: 0.05em;
+}
+
+/* 「一本！！」が出たときの点滅エフェクト */
+.ippon-flash {
+    position: absolute;
+    font-size: 8rem;
+    color: #ff3333;
+    font-weight: 900;
+    text-shadow: 0 0 20px rgba(255, 0, 0, 0.6);
+    animation: ipponFlashAnim 0.4s infinite alternate;
+}
+
+@keyframes ipponFlashAnim {
+    from {
+        opacity: 0.4;
+        transform: scale(0.95);
+    }
+
+    to {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+}

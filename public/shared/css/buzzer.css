@@ -1,0 +1,82 @@
+/* public/shared/css/buzzer.css */
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #f7f6f3;
+    color: #1a1a1a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 90vh;
+}
+
+.buzzer-container {
+    background: #ffffff;
+    padding: 30px 20px;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+    border: 1px solid #dcd6cd;
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+    box-sizing: border-box;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 14px;
+    font-size: 1.1rem;
+    border: 1px solid #dcd6cd;
+    border-radius: 10px;
+    outline: none;
+    box-sizing: border-box;
+    text-align: center;
+}
+
+.score-display {
+    font-size: 1.2rem;
+    font-weight: bold;
+    margin: 15px 0;
+    color: #555;
+}
+
+.status-text {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin: 20px 0;
+    color: #ff3333;
+}
+
+/* 🟥 巨大早押し丸ボタン */
+#buzzer-btn {
+    background-color: #ff3333;
+    color: white;
+    font-size: 2.5rem;
+    font-weight: 900;
+    border: none;
+    border-radius: 50%;
+    width: 200px;
+    height: 200px;
+    margin: 20px auto;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    box-shadow: 0 10px 25px rgba(255, 51, 51, 0.4);
+    cursor: pointer;
+    transition: transform 0.1s ease, background-color 0.2s ease, opacity 0.2s ease;
+}
+
+#buzzer-btn:active {
+    background-color: #e02828;
+    transform: scale(0.92);
+    box-shadow: 0 4px 10px rgba(255, 51, 51, 0.2);
+}
+
+/* ロックがかかったときのボタンスタイル */
+#buzzer-btn:disabled {
+    background-color: #aaaaaa !important;
+    box-shadow: none !important;
+    opacity: 0.6;
+    cursor: not-allowed;
+}

@@ -1,0 +1,106 @@
+/* public/shared/css/voter.css */
+body {
+    font-family: system-ui, -apple-system, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background-color: #fffdf2; /* ほんのり黄色がかった背景 */
+    color: #1a1a1a;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 90vh;
+}
+
+.voter-box {
+    background: #ffffff;
+    padding: 30px 20px;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+    border: 1px solid #dcd6cd;
+    text-align: center;
+    width: 100%;
+    max-width: 400px;
+    box-sizing: border-box;
+}
+
+h2 {
+    font-size: 1.6rem;
+    font-weight: 900;
+    margin-top: 0;
+    margin-bottom: 24px;
+    color: #1a1a1a;
+    letter-spacing: 0.03em;
+}
+
+input[type="text"] {
+    width: 100%;
+    padding: 14px;
+    font-size: 1.1rem;
+    border: 1px solid #dcd6cd;
+    border-radius: 10px;
+    outline: none;
+    box-sizing: border-box;
+    text-align: center;
+    background-color: #fafafa;
+}
+
+input[type="text"]:focus {
+    border-color: #ffd400;
+    background-color: #fff;
+}
+
+/* 🗳️ 投票ボタンの共通ベースデザイン */
+.vote-btn {
+    background-color: #ffd400; /* 通常はあざやかな黄色 */
+    color: #1a1a1a;
+    font-size: 1.5rem;
+    font-weight: bold;
+    padding: 22px;
+    margin: 12px 0;
+    border-radius: 12px;
+    width: 100%;
+    border: none;
+    cursor: pointer;
+    display: block;
+    box-shadow: 0 6px 14px rgba(255, 212, 0, 0.25);
+    transition: transform 0.1s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* ボタンを押したときのへこむアニメーション */
+.vote-btn:active {
+    transform: translateY(2px);
+}
+
+/* 0点ボタン（スルー・おもろくない） */
+.vote-btn-0 {
+    background: #eeeeee !important;
+    color: #555555 !important;
+    box-shadow: none !important;
+    font-size: 1.2rem;
+    padding: 16px;
+}
+.vote-btn-0:active {
+    background: #dddddd !important;
+}
+
+/* 2点ボタン（大爆笑・本家でいうボタン2個押し） */
+.vote-btn-2 {
+    background: #ffae00 !important; /* あざやかなオレンジ */
+    color: #ffffff !important;
+    box-shadow: 0 6px 14px rgba(255, 174, 0, 0.35) !important;
+}
+.vote-btn-2:active {
+    background: #e69d00 !important;
+}
+
+/* 現在の投票ステータス表示エリア */
+.status {
+    font-size: 1.1rem;
+    font-weight: bold;
+    margin-top: 20px;
+    padding: 12px;
+    border-radius: 8px;
+    background-color: #f0fdf4;
+    color: #16a34a;
+    border: 1px solid #bbf7d0;
+}

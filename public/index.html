@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>番組風ゲーム配信システム - ハブ</title>
+    <!-- 共通の style.css を読み込み -->
+    <link rel="stylesheet" href="css/style.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body class="hub-body">
+
+    <!-- 💡【PC大画面用】起動時に表示されるセットアップエリア（制御用QRを表示） -->
+    <div id="pc-setup-container" class="hub-container" style="display: none;">
+        <div class="setup-box">
+            <h1>番組風ゲームシステム</h1>
+            <h3>📱 制御用端末（スマホ）で下のQRコードを読み込んでください</h3>
+            <div class="qr-wrapper">
+                <img id="qr-image" alt="QRコード">
+            </div>
+        </div>
+    </div>
+
+    <!-- 💡【制御スマホ用】メイン操作エリア -->
+    <div id="mobile-menu-container" class="hub-container" style="display: none;">
+        
+        <!-- ステップ1：【初期画面】2つのモード選択ボタンのみ -->
+        <div id="mode-select-screen" style="display: none;">
+            <h1 class="screen-title">🎮 モードを選択してください</h1>
+            <div class="menu-grid">
+                <button class="menu-card menu-card-ippon" onclick="chooseMode('ippon')">🟨 IPPONグランプリ</button>
+                <button class="menu-card menu-card-quiz" onclick="chooseMode('buzzer')">🟥 早押しクイズ</button>
+            </div>
+        </div>
+
+        <!-- ステップ2：【ゲーム管理画面】モード選択後に切り替わる画面 -->
+        <div id="game-control-screen" style="display: none;">
+            <h1 id="selected-mode-title" class="screen-title">管理画面</h1>
+            <div class="control-box">
+                <button class="btn-start" onclick="startGame()">🚀 ゲームスタート</button>
+                <button class="btn-back" onclick="backToMenu()">↩️ モード選択に戻る</button>
+
+                <!-- その下にリアルタイム参加者リストを表示 -->
+                <div class="voters-section">
+                    <h3 id="current-voters-count">👥 ログインした参加者 (0人)</h3>
+                    <div id="ctrl-user-list">
+                        <!-- ここにログインした名前がリアルタイムにポコポコ追加されます -->
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- 共通の script.js を読み込み -->
+    <script src="js/script.js"></script>
+</body>
+</html>

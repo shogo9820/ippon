@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <title>早押しクイズ メイン演出画面</title>
+    <link rel="stylesheet" href="css/quiz.css">
+    <script src="/socket.io/socket.io.js"></script>
+    <!-- 💡 修正：不要な古いqrcode.jsの読み込み行を削除しました -->
+</head>
+<body>
+
+    <div id="display-container">
+        <div id="ippon-stage-card" class="stage-card">
+            <div id="content-area" style="width: 100%; height: 100%; display: flex; justify-content: center; align-items: center;">
+                <div class="stage-text">クイズを開始してください</div>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/data.js"></script>
+    <script src="js/display.js"></script>
+</body>
+</html>

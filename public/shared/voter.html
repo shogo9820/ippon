@@ -1,0 +1,35 @@
+<!-- public/shared/voter.html -->
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>審査員投票パネル</title>
+    <!-- 💡 修正：sharedフォルダ内の新しいcssパスを指定 -->
+    <link rel="stylesheet" href="css/voter.css">
+    <script src="/socket.io/socket.io.js"></script>
+</head>
+<body>
+
+    <div class="voter-box">
+        <h2>IPPON 審査員パネル</h2>
+        
+        <div style="margin-bottom: 20px; text-align: left;">
+            <label style="display:block; margin-bottom:8px; font-weight:bold; font-size: 0.9rem; color: #555;">審査員名（端末ID）：</label>
+            <input type="text" id="voter-id" value="審査員A">
+        </div>
+
+        <div id="voting-buttons">
+            <!-- 💡 修正：cssクラス（vote-btn-0 や vote-btn-2）を適用したボタンを配置 -->
+            <button class="vote-btn vote-btn-0" onclick="submitVote(0)">0点 (スルー)</button>
+            <button class="vote-btn" onclick="submitVote(1)">💛 1点 (おもろい)</button>
+            <button class="vote-btn vote-btn-2" onclick="submitVote(2)">🔥 2点 (大爆笑)</button>
+        </div>
+
+        <div id="voter-status" class="status">おもろいと思ったらボタンをタップ！</div>
+    </div>
+
+    <!-- 💡 修正：sharedフォルダ内の新しいjsパスを指定 -->
+    <script src="js/voter.js"></script>
+</body>
+</html>
