@@ -1,0 +1,24 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>早押しボタン</title>
+    <link rel="stylesheet" href="./css/style.css">
+</head>
+<body>
+    <div class="buzzer-container">
+        <h2>早押し端末</h2>
+        <input type="text" id="player-name" value="プレイヤー1" placeholder="プレイヤー名">
+        
+        <div style="background: #e9ecef; padding: 10px; margin: 10px 0; border-radius: 5px;">
+            現在のあなたの得点: <span id="my-score" style="font-size: 1.5rem; font-weight: bold; color: #007bff;">0</span> ポイント
+        </div>
+
+        <button id="buzzer-btn" onclick="pressBuzzer()">押す！</button>
+        <div id="buzzer-status" style="font-size: 1.2rem; margin-top: 15px; font-weight: bold;"></div>
+    </div>
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="./js/buzzer.js"></script>
+</body>
+</html>
