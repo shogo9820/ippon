@@ -205,7 +205,7 @@ body {
 .stage-card {
     position: relative;
     width: 98vw;
-    max-width: 1400px;
+    max-width: 1800px;
     height: 98vh;
     display: flex;
     justify-content: center;
