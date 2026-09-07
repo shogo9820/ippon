@@ -153,3 +153,72 @@ socket.on("updateVotes", (votes) => {
         updateIpponCardFramework(votes);
     }
 });
+
+// --- public/ippon/js/display.js の一番下に追加 ---
+
+// 🧪 PC1台で一発テストするための裏デバッグ機能
+window.addEventListener('DOMContentLoaded', () => {
+  // 画面の左上に目立たないテストボタンを自動生成して配置
+  const testBtn = document.createElement('button');
+  testBtn.innerText = "⚡ 4人自動投票テスト開始";
+  testBtn.style.position = 'fixed';
+  testBtn.style.top = '10px';
+  testBtn.style.left = '10px';
+  testBtn.style.zIndex = '9999';
+  testBtn.style.padding = '8px 12px';
+  testBtn.style.background = '#28a745';
+  testBtn.style.color = '#fff';
+  testBtn.style.border = 'none';
+  testBtn.style.borderRadius = '4px';
+  testBtn.style.cursor = 'pointer';
+  testBtn.style.fontWeight = 'bold';
+  testBtn.style.opacity = '0.3'; // 本番で目立たないよう薄くしておく（マウスを乗せると100%に）
+  testBtn.onmouseover = () => testBtn.style.opacity = '1';
+  testBtn.onmouseout = () => testBtn.style.opacity = '0.3';
+  
+  document.body.appendChild(testBtn);
+
+  testBtn.addEventListener('click', async () => {
+    testBtn.disabled = true;
+    testBtn.innerText = "⏳ テスト進行中...";
+
+    console.log("【テスト】擬似審査員4人をサーバーにログインさせます...");
+    socket.emit('joinUser', { name: '📊 テスト審査員A', role: 'voter' });
+    socket.emit('joinUser', { name: '📊 テスト審査員B', role: 'voter' });
+    socket.emit('joinUser', { name: '📊 テスト審査員C', role: 'voter' });
+    socket.emit('joinUser', { name: '📊 テスト審査員D', role: 'voter' });
+
+    // 司会者がお題を出して誰かがボタンを押した状態（voting）を強制的に作り出す
+    socket.emit('showQuestionText', "テスト用の長いお題文章です。ここに文字が入ることでスクロール制限が外れているかどうかも同時にチェックできます。");
+    
+    // ちょっとだけ待ってから、回答者がボタンを押したことにする
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    socket.emit('pressBuzzer', { playerName: '🎭 テスト解答者' });
+
+    // 1秒ごとに票がリアルタイムに増えていく演出を再現
+    const mockVotes = {};
+    const steps = [
+      { id: '📊 テスト審査員A', pts: 2 },
+      { id: '📊 テスト審査員B', pts: 2 },
+      { id: '📊 テスト審査員C', pts: 2 },
+      { id: '📊 テスト審査員D', pts: 2 }
+    ];
+
+    for (let i = 0; i < steps.length; i++) {
+      await new Promise(resolve => setTimeout(resolve, 1200)); // 1.2秒刻みで枠が増える
+      mockVotes[steps[i].id] = steps[i].pts;
+      console.log(`【テスト】${steps[i].id} が ${steps[i].pts}点 を投票しました`);
+      socket.emit('sendVote', { voterId: steps[i].id, points: steps[i].pts });
+    }
+
+    // 満票になったら2秒後に自動で投票終了ボタンをサーバーに送る
+    await new Promise(resolve => setTimeout(resolve, 1500));
+    socket.emit('finishVoting');
+
+    // すべて終わったらボタンを元に戻す
+    setTimeout(() => {
+      testBtn.disabled = false;
+      testBtn.innerText = "⚡ 4人自動投票テスト開始";
+    }, 4000);
+  });
+});
