@@ -26,7 +26,7 @@ function getLocalIp() {
     return 'localhost';
 }
 
-const BASE_URL = "http://" + getLocalIp() + ":" + PORT;
+const BASE_URL = "https://ippon.onrender.com";
 app.use(express.static(path.join(__dirname, 'public')));
 
 // データのインポート
