@@ -72,15 +72,28 @@ body {
     color: #aaaaaa;
 }
 
+/* 共通の土台設定（文字サイズはそのまま） */
 .text-box {
     font-size: 1.1rem;
     font-weight: bold;
     background: #333333;
     padding: 8px;
     border-radius: 4px;
-    overflow-y: auto;
-    max-height: 60px;
     color: #ffffff;
+    box-sizing: border-box;
+}
+
+/* 🟨 現在のお題：制限をなくし、長い文章もスクロールなしで全行自動表示 */
+#current-q {
+    max-height: none;      /* 💡 高さに上限をつけない */
+    overflow-y: visible;    /* 💡 スクロールバーを消す */
+}
+
+/* 🟥 次のお題：1行分にぎゅっと縮小し、はみ出た文字は「...」にする */
+#next-q {
+    white-space: nowrap;     /* 💡 改行させず1行に固定 */
+    overflow: hidden;        /* 💡 はみ出た文字を隠す */
+    text-overflow: ellipsis; /* 💡 末尾を「...」にする */
 }
 
 .btn-submit {
