@@ -84,16 +84,20 @@ socket.on("updateState", (state) => {
     return;
   }
 
+// --- public/ippon/js/display.js の 72行目〜125行目付近（playingブロック）を以下に丸ごと差し替え ---
+
   if (state.phase === "playing") {
     const totalVotersCount = (state.connectedUsers || []).filter(u => u.role === 'voter').length || 3; 
     const maxPossibleVotes = totalVotersCount * 2; 
     const currentTotalVotes = Object.values(state.votes || {}).reduce((a, b) => a + b, 0);
 
+    // 📭 1. 待機中
     if (state.status === "waiting") {
       card.classList.remove("black-out");
       content.innerHTML = '<div class="stage-text">次の問題をお待ちください</div>';
       updateIpponCardFramework({});
       
+    // 📝 2. 出題中（問題文タイピング）
     } else if (state.status === "question" && state.currentQuestion) {
       card.classList.remove("black-out");
       updateIpponCardFramework({});
@@ -107,15 +111,25 @@ socket.on("updateState", (state) => {
         content.innerHTML = '<div class="stage-text">' + state.currentQuestion + '</div>';
       }
       
-    } else if (state.status === "voting" || state.currentPresenter) {
+    // 🗳️ 3. 回答権獲得・投票中・および「一本発生の瞬間（resultかつ満票）」
+    // 💡【修正ポイント】満票に達した瞬間（result）も、画面を切り替えずにこのブラックアウト＆名前表示を維持する！
+    } else if (state.status === "voting" || state.currentPresenter || (state.status === "result" && currentTotalVotes >= maxPossibleVotes)) {
       if (typingTimer) clearInterval(typingTimer);
       const fastest = state.currentPresenter || "回答者";
-      card.classList.add("black-out");
+      
+      // 満票になったら黒背景を解除してゴールドアウト（full-voted）へ繋ぐ
+      if (currentTotalVotes >= maxPossibleVotes) {
+          card.classList.remove("black-out");
+      } else {
+          card.classList.add("black-out");
+      }
+      
       content.innerHTML = '<div class="presenter-text">' + fastest + ' さん</div>';
       
-      // 💡 サーバーから送られてきた正確な審査員人数を枠の計算に渡す
+      // 枠の増殖・または画面埋め尽くしを実行
       updateIpponCardFramework(state.votes, totalVotersCount);
 
+      // 満票未満の時だけ、右下にリアルタイムの点数バッジを出す
       if (currentTotalVotes < maxPossibleVotes && currentTotalVotes > 0) {
           if (effect) {
               effect.innerHTML = '<div class="score-badge-container">' +
@@ -124,38 +138,24 @@ socket.on("updateState", (state) => {
                                  '</div>';
           }
       }
+      
+      // 満票（一本）に達していたら、文字をドカンと出す！
+      if (currentTotalVotes >= maxPossibleVotes && effect) {
+          effect.innerHTML = '<h1 class="ippon-flash">一本！！</h1>';
+      }
         
+    // 📊 4. 一本にならずに司会者が手動で打ち切ったとき（純粋な結果発表）
     } else if (state.status === "result") {
       card.classList.remove("black-out");
       const totalPoints = Object.values(state.votes || {}).reduce((a, b) => a + b, 0);
-      const maxPossibleVotesResult = totalVotersCount * 2;
 
       var resultHtml = '<div style="display:flex; flex-direction:column; align-items:center; justify-content:center; gap:40px; width:100%; height:100%; text-align:center;">' +
                        '<div class="stage-text" style="font-size:3.2rem; color:#000;">' + (state.currentQuestion || "") + '</div>' +
                        '<div style="font-size: 4.8rem; font-weight: 900; color: #ff3333; background:rgba(0,0,0,0.05); padding:15px 50px; border-radius:12px; border:4px solid #ff3333; box-shadow: 0 10px 30px rgba(0,0,0,0.15);">合計得点: ' + totalPoints + ' 票</div>' +
                        '</div>';
       content.innerHTML = resultHtml;
-      updateIpponCardFramework(state.votes);
-      
-      if (totalPoints >= maxPossibleVotesResult && effect) {
-        effect.innerHTML = '<h1 class="ippon-flash">一本！！</h1>';
-      }
+      updateIpponCardFramework(state.votes, totalVotersCount);
     }
-  } else if (state.phase === "ranking") {
-    card.classList.remove("black-out");
-    updateIpponCardFramework({});
-    
-    var scoreHtml = '<div style="width:100%;"><h2 style="font-size: 3.5rem; font-weight: 900; color: #000; margin-bottom: 30px; text-decoration: underline #000 6px;">🏆 IPPONグランプリ 得点ランキング</h2><ul style="list-style: none; padding: 0; margin: 0; width: 100%;">';
-    var sorted = Object.entries(state.scores || {}).sort(function(a, b) { return b - a; });
-    if (sorted.length === 0) {
-      scoreHtml += '<li style="font-size: 3rem; font-weight: 900; color: #555; margin-top: 20px;">得点記録がありません</li>';
-    } else {
-      sorted.forEach(function(item, idx) {
-        scoreHtml += '<li style="margin: 25px 0; font-size: 3.2rem; font-weight: 900; color: #000;">第 ' + (idx + 1) + ' 位 ： ' + item + ' （ ' + item + ' ポイント ）</li>';
-      });
-    }
-    scoreHtml += '</ul></div>';
-    content.innerHTML = scoreHtml;
   }
 });
 
