@@ -8,13 +8,7 @@
   },
   "dependencies": {
     "express": "^4.19.2",
-<<<<<<< HEAD
     "qrcode": "^1.5.4",
     "socket.io": "^4.7.5"
   }
 }
-=======
-    "socket.io": "^4.7.5"
-  }
-}
->>>>>>> 4a82d9c738828a3197cee2465ce4687b4398168c
