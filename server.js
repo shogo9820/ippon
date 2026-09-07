@@ -80,7 +80,11 @@ function setNextQuizRandom() {
 }
 
 let connectedUsers = [];
-function sendState() { io.emit('updateState', gameState); }
+// 💡 gameStateを送信する直前に、最新のconnectedUsers（ログイン中のユーザー一覧）を合流させる！
+function sendState() { 
+    gameState.connectedUsers = connectedUsers; 
+    io.emit('updateState', gameState); 
+}
 
 io.on('connection', (socket) => {
     socket.emit('updateState', gameState);

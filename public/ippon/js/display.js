@@ -148,7 +148,8 @@ socket.on("updateState", (state) => {
 
 socket.on("updateVotes", (votes) => {
     const card = document.getElementById("ippon-stage-card");
-    if(card && card.classList.contains("black-out")) {
+    // 💡 サーバーから直接票の更新（updateVotes）が来たら、状態に関わらず枠を即座に増殖させる！
+    if(card) {
         updateIpponCardFramework(votes);
     }
 });
