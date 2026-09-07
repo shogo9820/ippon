@@ -20,17 +20,29 @@ function typeWriter(text, elementId, speed = 80) {
   }, speed);
 }
 
-// 💡 修正：新しい完璧なフレームバランスのさらに内側へ、等間隔で綺麗に枠を増殖させる
-function updateIpponCardFramework(votes) {
+// 💡 修正：現在のログイン人数から自動で満票を計算して枠を広げる
+function updateIpponCardFramework(votes, currentVotersCount = 3) {
   const card = document.getElementById("ippon-stage-card");
   if (!card) return;
 
   const totalVotes = Object.values(votes || {}).reduce((a, b) => a + b, 0);
   
-  // クイズ画像と100%同じ太さで定義された、初期状態のベースシャドウ
+  // 💡 人数に合わせて満票基準を動的に変える（4人なら8、5人なら10、6人なら12）
+  const maxPossibleVotes = currentVotersCount * 2;
+
+  if (totalVotes >= maxPossibleVotes && maxPossibleVotes > 0) {
+      // 満票になった瞬間に「画面を埋め尽くす」
+      card.classList.add("full-voted");
+      return;
+  } else {
+      // 満票未満ならいつでも枠は元のサイズに戻れる（票の変動に対応）
+      card.classList.remove("full-voted");
+  }
+
+  // 通常時のベースシャドウ
   let shadowString = "inset 0 0 0 14px #000000, inset 0 0 0 24px #fff2a3, inset 0 0 0 38px #000000, inset 0 0 0 48px #ffcc00, inset 0 0 0 62px #000000";
   
-  // 1票ごとにこの太いバランスを維持したまま、綺麗に内側にレイヤーペアを追加していく
+  // 1点ごとに内枠をレイヤー状に追加
   for (let i = 1; i <= totalVotes; i++) {
       let offsetBlack = 62 + (i * 16);
       let offsetGold = offsetBlack + 8;
@@ -101,7 +113,8 @@ socket.on("updateState", (state) => {
       card.classList.add("black-out");
       content.innerHTML = '<div class="presenter-text">' + fastest + ' さん</div>';
       
-      updateIpponCardFramework(state.votes);
+      // 💡 サーバーから送られてきた正確な審査員人数を枠の計算に渡す
+      updateIpponCardFramework(state.votes, totalVotersCount);
 
       if (currentTotalVotes < maxPossibleVotes && currentTotalVotes > 0) {
           if (effect) {

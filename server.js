@@ -253,10 +253,43 @@ io.on('connection', (socket) => {
         sendState();
     });
 
+// --- server.js の一番下付近にある sendVote イベントを修正 ---
+
     socket.on('sendVote', (data) => {
         if (gameState.mode === 'ippon' && gameState.status === 'voting') {
+            // リアルタイムに票を上書き保存
             gameState.votes[data.voterId] = data.points;
             io.emit('updateVotes', gameState.votes);
+            
+            // 💡 現在ログインしている審査員の正確な人数から、この瞬間の満票値を計算
+            const currentVotersCount = connectedUsers.filter(u => u.role === 'voter').length || 3;
+            const maxPossiblePoints = currentVotersCount * 2;
+            
+            // 現在の合計得点を算出
+            const totalPoints = Object.values(gameState.votes || {}).reduce((a, b) => a + b, 0);
+            
+            // 🔥【仕様追加】もしリアルタイム投票中に自動で満票に達したら、その瞬間に自動で「一本判定」をキックする！
+            if (totalPoints >= maxPossiblePoints && gameState.currentPresenter) {
+                if (gameState.scores[gameState.currentPresenter] !== undefined) {
+                    gameState.scores[gameState.currentPresenter] += 1;
+                }
+                
+                gameState.status = 'result';
+                sendState(); // 全体に状態を配信して、テレビ画面をゴールドアウトさせる！
+
+                // 1.8秒後に自動リセットして次へ
+                setTimeout(() => {
+                    if (gameState.mode === 'ippon' && gameState.status === 'result') {
+                        gameState.votes = {};            
+                        gameState.currentPresenter = ''; 
+                        gameState.status = 'question';   
+                        sendState();
+                    }
+                }, 1800);
+                return; // 自動終了したため、これ以降の処理はスキップ
+            }
+
+            // 満票に達していない場合は、そのままリアルタイムな状態を配信（何回でも投票変更可能）
             sendState();
         }
     });
