@@ -167,10 +167,9 @@ socket.on("updateVotes", (votes) => {
     }
 });
 
-// --- public/ippon/js/display.js の一番下（テストボタン部分）の最新修正版 ---
+// --- public/ippon/js/display.js の一番下（テストボタン部分）を以下に差し替え ---
 
 window.addEventListener('DOMContentLoaded', () => {
-  // 画面の左上に目立たないテストボタンを自動生成して配置
   const testBtn = document.createElement('button');
   testBtn.innerText = "⚡ 5人自動投票テスト開始（満票10点）";
   testBtn.style.position = 'fixed';
@@ -195,42 +194,42 @@ window.addEventListener('DOMContentLoaded', () => {
     testBtn.innerText = "⏳ テスト進行中...";
 
     console.log("【テスト】擬似審査員5人をサーバーにログインさせます...");
-    // 💡 人数可変テストのため、今回は「5人（満票10点）」のパターンでシミュレートします
     socket.emit('joinUser', { name: '📊 テスト審査員1', role: 'voter' });
     socket.emit('joinUser', { name: '📊 テスト審査員2', role: 'voter' });
     socket.emit('joinUser', { name: '📊 テスト審査員3', role: 'voter' });
     socket.emit('joinUser', { name: '📊 テスト審査員4', role: 'voter' });
     socket.emit('joinUser', { name: '📊 テスト審査員5', role: 'voter' });
 
-    // 司会者がお題を出した状態を強制的に作り出す
-    socket.emit('showQuestionText', "テスト用の長いお題文章です。スクロールせずに全行綺麗に表示されているかも確認できます。");
+    // お題をセット
+    socket.emit('showQuestionText', "テスト用の長いお題文章です。スクロール制限のチェックも同時に行えます。");
     
-    // サーバーが処理するのを少しだけ待つ
+    // サーバーの処理を少し待つ（800ms）
     await new Promise(resolve => setTimeout(resolve, 800));
-    // 回答者がボタンを押した状態（voting）にする
+    
+    // 解答者がボタンを押した状態にする
     socket.emit('pressBuzzer', { playerName: '🎭 テスト解答者' });
 
-    // 💡 1秒ごとに審査員が順番に2点ずつ投票していく流れを完全再現
+    // 💡 演出がよく見えるよう、テンポを少し早めて「0.6秒（600ms）」刻みでガシャガシャと枠を増やします
     const steps = [
       { id: '📊 テスト審査員1', pts: 2 },
       { id: '📊 テスト審査員2', pts: 2 },
       { id: '📊 テスト審査員3', pts: 2 },
       { id: '📊 テスト審査員4', pts: 2 },
-      { id: '📊 テスト審査員5', pts: 2 }
+      { id: '📊 テスト審査員5', pts: 2 } // 👈 ここで満票に達し、サーバーの1.8秒タイマーが起動します
     ];
 
     for (let i = 0; i < steps.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 1000)); // 1秒刻みで枠が増える
+      await new Promise(resolve => setTimeout(resolve, 600)); // 600ms刻み
       console.log(`【テスト】${steps[i].id} が ${steps[i].pts}点 を投票`);
-      
-      // 💡 サーバーへ投票データを送信
       socket.emit('sendVote', { voterId: steps[i].id, points: steps[i].pts });
     }
 
-    // すべて終わったら4秒後にボタンを元に戻す
+    // 💡 満票に達した後はテスト側からは一切余計な通信を送らず、サーバーの自動リセット（1.8秒）をただ静かに待つ
+    // 💡 サーバーの処理がすべて終わって落ち着いた頃（3秒後）に、テストボタンだけをそっと復活させる
     setTimeout(() => {
       testBtn.disabled = false;
       testBtn.innerText = "⚡ 5人自動投票テスト開始（満票10点）";
-    }, 4000);
+      console.log("【テスト】全工程が終了しました。ボタンを再有効化します。");
+    }, 3500);
   });
 });
