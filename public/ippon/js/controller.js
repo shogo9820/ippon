@@ -1,13 +1,10 @@
-// public/ippon/js/controller.js
+// --- public/ippon/js/controller.js 完全修正版 ---
 const socket = io();
 let startTime = null;
 let timerInterval = null;
 
 window.addEventListener('DOMContentLoaded', () => {
     socket.emit('joinUser', { name: '大喜利司会者', role: 'controller' });
-
-    // 💡【重要】data.jsのお題一覧をセレクトボックスに自動で詰め込む
-    initIpponSelect();
 
     document.getElementById('menu-add-btn').addEventListener('click', () => openModal('add-modal'));
     document.getElementById('menu-end-btn').addEventListener('click', () => openModal('end-modal'));
@@ -26,12 +23,13 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-function initIpponSelect() {
+// 💡 修正：存在しない配列を見に行かず、サーバーから送られてきたリストでプルダウンを再構築する
+function initIpponSelect(questionsList) {
     const select = document.getElementById('ippon-select-q');
-    if (!select || typeof ipponQuestions === 'undefined') return;
+    if (!select || !questionsList) return;
     
     select.innerHTML = '<option value="">-- 通常はランダム出題 --</option>';
-    ipponQuestions.forEach((item, index) => {
+    questionsList.forEach((item, index) => {
         const opt = document.createElement('option');
         opt.value = item.text;
         opt.innerText = (index + 1) + ": " + item.text;
@@ -58,15 +56,10 @@ function stopTimer() {
     document.getElementById('timer-display').innerText = "00:00";
 }
 
-// 💡 出題ボタンが押されたときの処理
 function sendQuestion() {
     const select = document.getElementById('ippon-select-q');
     const selectedText = select ? select.value : "";
-    
-    // セレクトボックスで選ばれていればその文字を送り、選ばれていなければ空文字を送ってサーバーにランダム出題させる！
     socket.emit('showQuestionText', selectedText);
-    
-    // 出題したらセレクトボックスをリセット
     if (select) select.value = "";
 }
 
@@ -76,11 +69,10 @@ function endGameAndRank() { socket.emit('requestRanking'); }
 function submitNewQuestion() {
     const text = document.getElementById('new-q-text').value.trim();
     if(text) {
+        // サーバーへ追加信号を送信（server.jsでキャッチされて最新リストが折り返されます）
         socket.emit('addIpponQuestion', text);
         document.getElementById('new-q-text').value = '';
         closeModal('add-modal');
-        // 追加されたお題を反映させるためにセレクトボックスを再起動
-        setTimeout(initIpponSelect, 200);
     }
 }
 
@@ -88,9 +80,13 @@ function submitNewQuestion() {
 socket.on('updateState', (state) => {
     if (state.phase === 'setup') { window.location.href = '/index.html'; return; }
 
+    // 🔥【重要】サーバーから送られてくる追加お題入りの最新リストでプルダウンを上書き更新
+    if (state.ipponQuestions) {
+        initIpponSelect(state.ipponQuestions);
+    }
+
     document.getElementById('current-q').innerText = state.currentQuestion || "未出題";
     
-    // 💡【バグ修正】サーバーの変数名「nextIpponQuestionText」と100%一致させて次のお題カンペを表示！
     if (state.nextIpponQuestionText) {
         document.getElementById('next-q').innerText = state.nextIpponQuestionText;
     } else {

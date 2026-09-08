@@ -1,11 +1,8 @@
-// public/quiz/js/controller.js
+// --- public/quiz/js/controller.js 完全修正版 ---
 const socket = io();
 
 window.addEventListener('DOMContentLoaded', () => {
     socket.emit('joinUser', { name: 'クイズ司会者', role: 'controller' });
-
-    // 💡【重要】data.jsのクイズ問題一覧をセレクトボックスに自動で詰め込む
-    initQuizSelect();
 
     document.getElementById('menu-add-btn').addEventListener('click', () => openModal('add-modal'));
     document.getElementById('menu-end-btn').addEventListener('click', () => openModal('end-modal'));
@@ -26,15 +23,16 @@ window.addEventListener('DOMContentLoaded', () => {
     });
 });
 
-function initQuizSelect() {
+// 💡 修正：サーバーから届く最新のクイズリストを使ってプルダウンを再構築する
+function initQuizSelect(questionsList) {
     const select = document.getElementById('quiz-select-q');
-    if (!select || typeof buzzerQuestions === 'undefined') return;
+    if (!select || !questionsList) return;
     
     select.innerHTML = '<option value="">-- 通常はランダム出題 --</option>';
-    buzzerQuestions.forEach((item, index) => {
+    questionsList.forEach((item, index) => {
         const opt = document.createElement('option');
-        opt.value = index; // 配列の添字をvalueにする
-        opt.innerText = (index + 1) + ": " + item.q.substring(0, 18) + "..."; // 枠潰れ防止で先頭18文字をプレビュー
+        opt.value = index; 
+        opt.innerText = (index + 1) + ": " + item.q.substring(0, 18) + "..."; 
         select.appendChild(opt);
     });
 }
@@ -42,20 +40,14 @@ function initQuizSelect() {
 function openModal(id) { document.getElementById(id).style.display = 'flex'; }
 function closeModal(id) { document.getElementById(id).style.display = 'none'; }
 
-// 💡 出題ボタンが押されたときの処理
 function sendQuestion() {
     const select = document.getElementById('quiz-select-q');
     const selectedIndex = select ? select.value : "";
-    
     if (selectedIndex === "") {
-        // 何も選ばれていなければ、undefinedを送ってサーバー側で通常ランダム出題を走らせる！
         socket.emit('showQuestionByIndex', undefined);
     } else {
-        // 選ばれていれば、そのインデックスの番号を渡して狙い撃ち出題させる！
         socket.emit('showQuestionByIndex', selectedIndex);
     }
-    
-    // 出題後に選択をクリア
     if (select) select.value = "";
 }
 
@@ -68,17 +60,21 @@ function judgeCorrect() {
 }
 
 function judgeWrong() { socket.emit('wrongAnswer'); }
+// エラー回避：もし既存のコードで使われていたら定義を残しておく
+function judgeCorrectAction() { judgeCorrect(); }
+function judgeWrongAction() { judgeWrong(); }
+
 function endGameAndRank() { socket.emit('requestRanking'); }
 
 function submitNewQuestion() {
     const q = document.getElementById('new-q-text').value.trim();
     const a = document.getElementById('new-a-text').value.trim();
     if(q && a) {
+        // サーバーへ追加信号を送信
         socket.emit('addQuestion', { q: q, a: a });
         document.getElementById('new-q-text').value = '';
         document.getElementById('new-a-text').value = '';
         closeModal('add-modal');
-        setTimeout(initQuizSelect, 200);
     }
 }
 
@@ -86,10 +82,15 @@ socket.on('updateState', (state) => {
     if (state.phase === 'setup') { window.location.href = '/index.html'; return; }
 
     window.lastState = state;
+
+    // 🔥【重要】サーバーから送られてくる追加問題入りの最新リストでプルダウンを上書き更新
+    if (state.questions) {
+        initQuizSelect(state.questions);
+    }
+
     document.getElementById('current-q').innerText = state.currentQuestion || "未出題";
     document.getElementById('current-a').innerText = state.currentAnswer || "-";
     
-    // 💡【バグ修正】サーバーの変数名「nextQuizQuestionText」と100%一致させて次問題カンペを表示！
     if (state.nextQuizQuestionText) {
         document.getElementById('next-q').innerText = state.nextQuizQuestionText;
     } else {
