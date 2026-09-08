@@ -306,6 +306,41 @@ io.on('connection', (socket) => {
         sendState();
     });
 
+    // --- server.js の下部（disconnectイベントの直前など）に追記 ---
+
+    // 🟨 大喜利（IPPON）のお題をリアルタイムに追加する
+    socket.on('addIpponQuestion', (text) => {
+        if (!text) return;
+        // 現在のリストの最大IDを取得して、新しいIDを採番する
+        const nextId = gameState.ipponQuestions.length > 0 
+            ? Math.max(...gameState.ipponQuestions.map(q => Number(q.id))) + 1 
+            : 1;
+        
+        // サーバー側の配列に新しいお題を合流させる
+        gameState.ipponQuestions.push({ id: nextId, text: text });
+        console.log(`【お題追加】新しいお題が追加されました: ID=${nextId}, 内容=${text}`);
+        
+        // 追加された最新のリストを全端末に配信
+        sendState();
+    });
+
+    // 🟥 クイズ（QUIZ）の問題をリアルタイムに追加する
+    socket.on('addQuestion', (data) => {
+        if (!data || !data.q || !data.a) return;
+        // 現在のクイズリストの最大IDを取得して、新しいIDを採番する
+        const nextId = gameState.questions.length > 0 
+            ? Math.max(...gameState.questions.map(q => Number(q.id))) + 1 
+            : 1;
+        
+        // サーバー側の配列に新しいクイズを合流させる
+        gameState.questions.push({ id: nextId, q: data.q, a: data.a });
+        console.log(`【クイズ追加】新しい問題が追加されました: ID=${nextId}, Q=${data.q}, A=${data.a}`);
+        
+        // 追加された最新のリストを全端末に配信
+        sendState();
+    });
+
+
     socket.on('disconnect', () => {
         connectedUsers = connectedUsers.filter(u => u.id !== socket.id);
         io.emit('updateUserList', connectedUsers);
