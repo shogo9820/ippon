@@ -91,7 +91,7 @@ socket.on("updateState", (state) => {
             
             const titleEl = document.getElementById("selected-mode-title");
             if (titleEl) {
-                titleEl.innerText = state.mode === "ippon" ? "🟨 大喜利モード 準備中" : "🟥 クイズモード 準備中";
+                titleEl.innerText = state.mode === "ippon" ? "🟨 大喜利モード<br>準備中" : "🟥 クイズモード<br>準備中";
                 titleEl.style.color = state.mode === "ippon" ? "#ccaa00" : "#ff3333";
             }
         }
