@@ -22,34 +22,44 @@ function typeWriter(text, elementId, speed = 80) {
 
 // --- public/ippon/js/display.js の updateIpponCardFramework を差し替え ---
 
+// --- public/ippon/js/display.js の updateIpponCardFramework を完全修正版に差し替え ---
+
 function updateIpponCardFramework(votes, currentVotersCount = 5) {
   const card = document.getElementById("ippon-stage-card");
   const effect = document.getElementById("effect-area");
   if (!card) return;
 
-  // 💡 1点＝1枠、2点＝2枠として、現在の「累積枠数（合計得点）」を純粋に計算
-  const totalSlots = Object.values(votes || {}).reduce((a, b) => a + b, 0);
+  // 💡【完璧な仕様へ】1点なら1枠、2点なら2枠として、現在の「合計得点（票数）」を純粋に累積
+  const totalVotes = Object.values(votes || {}).reduce((a, b) => a + b, 0);
   
-  // 💡【5人仕様】：9点（9枠）以上になったら満票（一本）として判定
-  if (totalSlots >= 9) {
-      // 9枠に達した瞬間に、真ん中にIPPONテキスト入りの黄色い箱をドカンと出現させる！
+  // 💡【変数：満票 ＝ 投票者 * 2】の計算
+  const maxPossiblePoints = currentVotersCount * 2;
+
+  // 💡【IF 票 ＝ 満票】なら中央の長方形を完全に埋めてIPPONの演出！
+  if (totalVotes >= maxPossiblePoints && maxPossiblePoints > 0) {
+      // 中央の開いている長方形部分を一瞬で黄金に埋め尽くす（card全体を黄金で覆う）
+      card.style.boxShadow = "inset 0 0 0 14px #000000, inset 0 0 0 24px #fff2a3, inset 0 0 0 38px #000000, inset 0 0 0 48px #ffcc00, inset 0 0 0 62px #000000" +
+                             ", inset 0 0 0 300vw #ffcc00, inset 0 0 0 300vh #ffcc00";
+      
+      // 中央に「IPPON」の金色の箱の演出をドカンと出現させる！
       if (effect) {
           effect.innerHTML = '<div class="ippon-gold-box">IPPON</div>';
       }
-      // 枠自体は最大（9段階目）の状態で固定して一体化させる
-      card.style.boxShadow = "inset 0 0 0 14px #000000, inset 0 0 0 24px #fff2a3, inset 0 0 0 38px #000000, inset 0 0 0 48px #ffcc00, inset 0 0 0 62px #000000" +
-                             ", inset 0 0 0 300vw #ffcc00, inset 0 0 0 300vh #ffcc00"; // 画面を黄金で満たす
       return;
+  } else {
+      // 満票に達していない（1票目 〜 満票-1票目 の間）は演出エリアの箱を消しておく
+      if (effect) effect.innerHTML = "";
   }
 
-  // 通常時の黒と黄色のベース額縁
+  // 通常時の黒と黄色のベース額縁デザイン
   let shadowString = "inset 0 0 0 14px #000000, inset 0 0 0 24px #fff2a3, inset 0 0 0 38px #000000, inset 0 0 0 48px #ffcc00, inset 0 0 0 62px #000000";
   
-  // 💡 1点＝1枠、2点＝2枠として、点数の数（最大8枠まで）だけ綺麗に内枠を1段階ずつ増殖
-  for (let i = 1; i <= totalSlots; i++) {
-      let offsetBlack = 62 + (i * 18); // 1マス18px刻みで内側に締まっていく
-      let offsetGold = offsetBlack + 8;
-      let offsetNextLine = offsetGold + 10;
+  // 💡 1票、2票……満票の直前まで、現在の合計得点（票数）の分だけ内枠を1枚ずつ綺麗に内側に増殖
+  // 💡 どんな人数（4人, 5人, 6人）でも枠の締まり具合が綺麗に収まるよう、人数の最大値に合わせて幅を13pxに調整
+  for (let i = 1; i <= totalVotes; i++) {
+      let offsetBlack = 62 + (i * 13); 
+      let offsetGold = offsetBlack + 5;
+      let offsetNextLine = offsetGold + 7;
       
       shadowString += ", inset 0 0 0 " + offsetBlack + "px #ffcc00" +
                       ", inset 0 0 0 " + offsetGold + "px #fff2a3" +
@@ -115,28 +125,27 @@ socket.on("updateState", (state) => {
       }
       
     // 🗳️ 3. 回答権獲得・投票中・および「一本発生の瞬間（resultかつ満票）」
-// --- public/ippon/js/display.js 内の該当ブロックを修正 ---
+// --- public/ippon/js/display.js 内の該当箇所を修正 ---
 
     } else if (state.status === "voting" || state.currentPresenter || state.status === "result") {
       if (typingTimer) clearInterval(typingTimer);
       const fastest = state.currentPresenter || "回答者";
       
-      // 9枠（一本）に達したらブラックアウトを解除して黄金と融合させる
+      // 現在の合計得点（票数）と満票を算出
       const currentTotalVotes = Object.values(state.votes || {}).reduce((a, b) => a + b, 0);
-      if (currentTotalVotes >= 9) {
+      const maxPossiblePoints = totalVotersCount * 2;
+
+      // 💡 票 ＝ 満票 になった瞬間はブラックアウト（黒背景）を解除して黄金と一体化
+      if (currentTotalVotes >= maxPossiblePoints) {
           card.classList.remove("black-out");
+          content.innerHTML = ''; // 満票で中央の長方形が埋まったら名前の文字を消す
       } else {
           card.classList.add("black-out");
-      }
-      
-      // 💡 一本になっていない時だけ中央に「〇〇さん」の名前を表示する（一本時はIPPON箱が上書きする）
-      if (currentTotalVotes < 9) {
+          // 💡 満票に達するまでは、真ん中の開いている長方形部分にずっと名前を表示し続ける！
           content.innerHTML = '<div class="presenter-text">' + fastest + ' さん</div>';
-      } else {
-          content.innerHTML = ''; // 一本時は名前を消して箱を目立たせる
       }
       
-      // 枠と中央の箱のリアルタイム演出を発動
+      // 現在の投票データと、ログイン中の審査員人数をそのまま渡して演出発動
       updateIpponCardFramework(state.votes, totalVotersCount);
         
     // 📊 4. 一本にならずに司会者が手動で打ち切ったとき（純粋な結果発表）
@@ -204,13 +213,13 @@ window.addEventListener('DOMContentLoaded', () => {
     // 解答者がボタンを押した状態にする
     socket.emit('pressBuzzer', { playerName: '🎭 テスト解答者' });
 
-    // 💡 演出がよく見えるよう、テンポを少し早めて「0.6秒（600ms）」刻みでガシャガシャと枠を増やします
+// 💡 テストコード内の steps の部分です（5人で2点ずつ入れて、合計10票満票にする）
     const steps = [
-      { id: '📊 テスト審査員1', pts: 2 },
-      { id: '📊 テスト審査員2', pts: 2 },
-      { id: '📊 テスト審査員3', pts: 2 },
-      { id: '📊 テスト審査員4', pts: 2 },
-      { id: '📊 テスト審査員5', pts: 2 } // 👈 ここで満票に達し、サーバーの1.8秒タイマーが起動します
+      { id: 'voter_A', pts: 2 }, // 2票増える
+      { id: 'voter_B', pts: 2 }, // さらに2票増える（計4票）
+      { id: 'voter_C', pts: 2 }, // さらに2票増える（計6票）
+      { id: 'voter_D', pts: 2 }, // さらに2票増える（計8票） 👉 満票まであと2枠の緊迫状態
+      { id: 'voter_E', pts: 2 }  // 最後の人が2点を入れて【計10票 ＝ 満票】に到達！
     ];
 
     for (let i = 0; i < steps.length; i++) {
