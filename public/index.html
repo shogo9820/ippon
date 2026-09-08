@@ -10,10 +10,9 @@
 </head>
 <body class="hub-body">
 
-<!-- public/index.html の配置イメージ（既存のコンテナに合わせて調整してください） -->
 <div class="hub-container">
     
-    <!-- 🎛️ STEP1: 役割選択画面（追加） -->
+    <!-- 🎛️ 1. 最初にどちらかを選ぶ画面（新しく増えた選択肢） -->
     <div id="role-select-screen" class="setup-box" style="display: block;">
         <h1>大喜利・クイズハブ</h1>
         <h3>この端末の役割を選択してください</h3>
@@ -23,26 +22,41 @@
         </div>
     </div>
 
-    <!-- 🟨 STEP2: モード選択画面（元々あったものをidで囲む） -->
-    <div id="mode-select-screen" class="setup-box" style="display: none;">
-        <h1>モード選択</h1>
-        <h3>開催するゲームを選んでください</h3>
-        <div class="menu-grid">
-            <button class="menu-card menu-card-ippon" onclick="chooseMode('ippon')">🟨 IPPONグランプリ（大喜利）</button>
-            <button class="menu-card menu-card-quiz" onclick="chooseMode('buzzer')">🟥 早押しクイズ</button>
+    <!-- 📺 2. 元々のPCセットアップ画面（最初は非表示にしておき、選ばれたら出す） -->
+    <div id="pc-setup-container" class="setup-box" style="display: none;">
+        <h1>共通リアルタイムハブ</h1>
+        <h3>大喜利・クイズ 進行メインシステム</h3>
+        <div class="qr-wrapper">
+            <!-- 💡 ここにサーバーから届いた制御用スマホのQRがはめ込まれます（元通り） -->
+            <img id="qr-image" src="" alt="制御用QRコード">
         </div>
     </div>
 
-    <!-- 🟩 STEP3: スマホ管理画面ボックス（元々あったゲーム管理画面） -->
-    <div id="game-control-screen" class="control-box" style="display: none;">
-        <h2 id="selected-mode-title" class="screen-title">ゲーム準備中</h2>
-        <button class="btn-start" onclick="startGame()">🚀 本番ゲームスタート！</button>
-        <button class="btn-back" onclick="backToMenu()">⬅️ モード選択に戻る</button>
+    <!-- 📱 3. 元々のスマホ用操作画面（同じく最初は非表示） -->
+    <div id="mobile-menu-container" style="display: none;">
         
-        <div class="voters-section">
-            <p id="current-voters-count">👥 ログインした参加者 (0人)</p>
-            <div id="ctrl-user-list"></div>
+        <!-- モード選択（大喜利かクイズか） -->
+        <div id="mode-select-screen" class="setup-box" style="display: none;">
+            <h1>モード選択</h1>
+            <h3>開催するゲームを選んでください</h3>
+            <div class="menu-grid">
+                <button class="menu-card menu-card-ippon" onclick="chooseMode('ippon')">🟨 IPPONグランプリ（大喜利）</button>
+                <button class="menu-card menu-card-quiz" onclick="chooseMode('buzzer')">🟥 早押しクイズ</button>
+            </div>
         </div>
+
+        <!-- 本番管理（スタートボタン・参加者リスト） -->
+        <div id="game-control-screen" class="control-box" style="display: none;">
+            <h2 id="selected-mode-title" class="screen-title">ゲーム準備中</h2>
+            <button class="btn-start" onclick="startGame()">🚀 本番ゲームスタート！</button>
+            <button class="btn-back" onclick="backToMenu()">⬅️ モード選択に戻る</button>
+            
+            <div class="voters-section">
+                <p id="current-voters-count">👥 ログインした参加者 (0人)</p>
+                <div id="ctrl-user-list"></div>
+            </div>
+        </div>
+        
     </div>
 
 </div>
