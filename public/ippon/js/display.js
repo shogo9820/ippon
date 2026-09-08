@@ -171,67 +171,67 @@ socket.on("updateVotes", (votes) => {
     }
 });
 
-// --- public/ippon/js/display.js の一番下（テストボタン部分）を完全修正 ---
+// // --- public/ippon/js/display.js の一番下（テストボタン部分）を完全修正 ---
 
-window.addEventListener('DOMContentLoaded', () => {
-  const testBtn = document.createElement('button');
-  testBtn.innerText = "⚡ 本番通信テスト開始（審査員5人×2点）";
-  testBtn.style.position = 'fixed';
-  testBtn.style.top = '10px';
-  testBtn.style.left = '10px';
-  testBtn.style.zIndex = '9999';
-  testBtn.style.padding = '8px 12px';
-  testBtn.style.background = '#007bff'; // 💡 通信テストだと分かりやすいよう「青色」に変更
-  testBtn.style.color = '#fff';
-  testBtn.style.border = 'none';
-  testBtn.style.borderRadius = '4px';
-  testBtn.style.cursor = 'pointer';
-  testBtn.style.fontWeight = 'bold';
-  testBtn.style.opacity = '0.3'; 
-  testBtn.onmouseover = () => testBtn.style.opacity = '1';
-  testBtn.onmouseout = () => testBtn.style.opacity = '0.3';
+// window.addEventListener('DOMContentLoaded', () => {
+//   const testBtn = document.createElement('button');
+//   testBtn.innerText = "⚡ 本番通信テスト開始（審査員5人×2点）";
+//   testBtn.style.position = 'fixed';
+//   testBtn.style.top = '10px';
+//   testBtn.style.left = '10px';
+//   testBtn.style.zIndex = '9999';
+//   testBtn.style.padding = '8px 12px';
+//   testBtn.style.background = '#007bff'; // 💡 通信テストだと分かりやすいよう「青色」に変更
+//   testBtn.style.color = '#fff';
+//   testBtn.style.border = 'none';
+//   testBtn.style.borderRadius = '4px';
+//   testBtn.style.cursor = 'pointer';
+//   testBtn.style.fontWeight = 'bold';
+//   testBtn.style.opacity = '0.3'; 
+//   testBtn.onmouseover = () => testBtn.style.opacity = '1';
+//   testBtn.onmouseout = () => testBtn.style.opacity = '0.3';
   
-  document.body.appendChild(testBtn);
+//   document.body.appendChild(testBtn);
 
-  testBtn.addEventListener('click', async () => {
-    testBtn.disabled = true;
-    testBtn.innerText = "⏳ サーバー通信中...";
+//   testBtn.addEventListener('click', async () => {
+//     testBtn.disabled = true;
+//     testBtn.innerText = "⏳ サーバー通信中...";
 
-    console.log("【通信テスト】本番と同じ信号をサーバーに送信します...");
+//     console.log("【通信テスト】本番と同じ信号をサーバーに送信します...");
 
-    // 💡 1. 実際のスマホがログインした時と100%同じ信号をサーバーへ送る
-    socket.emit('joinUser', { name: 'テスト審査員1', role: 'voter' });
-    socket.emit('joinUser', { name: 'テスト審査員2', role: 'voter' });
-    socket.emit('joinUser', { name: 'テスト審査員3', role: 'voter' });
-    socket.emit('joinUser', { name: 'テスト審査員4', role: 'voter' });
-    socket.emit('joinUser', { name: 'テスト審査員5', role: 'voter' });
+//     // 💡 1. 実際のスマホがログインした時と100%同じ信号をサーバーへ送る
+//     socket.emit('joinUser', { name: 'テスト審査員1', role: 'voter' });
+//     socket.emit('joinUser', { name: 'テスト審査員2', role: 'voter' });
+//     socket.emit('joinUser', { name: 'テスト審査員3', role: 'voter' });
+//     socket.emit('joinUser', { name: 'テスト審査員4', role: 'voter' });
+//     socket.emit('joinUser', { name: 'テスト審査員5', role: 'voter' });
 
-    // 💡 サーバーがログインを処理して、テレビ画面の「totalVotersCount」が5人になるのを少し待つ
-    await new Promise(resolve => setTimeout(resolve, 500));
+//     // 💡 サーバーがログインを処理して、テレビ画面の「totalVotersCount」が5人になるのを少し待つ
+//     await new Promise(resolve => setTimeout(resolve, 500));
 
-    // 💡 2. 本番と同じ、1.5秒刻みでスマホから「2点」のボタンがタップされた信号だけをサーバーへ送る
-    const steps = [
-      { id: 'テスト審査員1', pts: 2 },
-      { id: 'テスト審査員2', pts: 2 },
-      { id: 'テスト審査員3', pts: 2 },
-      { id: 'テスト審査員4', pts: 2 },
-      { id: 'テスト審査員5', pts: 1 }
-    ];
+//     // 💡 2. 本番と同じ、1.5秒刻みでスマホから「2点」のボタンがタップされた信号だけをサーバーへ送る
+//     const steps = [
+//       { id: 'テスト審査員1', pts: 2 },
+//       { id: 'テスト審査員2', pts: 2 },
+//       { id: 'テスト審査員3', pts: 2 },
+//       { id: 'テスト審査員4', pts: 2 },
+//       { id: 'テスト審査員5', pts: 1 }
+//     ];
 
-    for (let i = 0; i < steps.length; i++) {
-      console.log(`【通信テスト】${steps[i].id} からサーバーへ [${steps[i].pts}点] の信号を送信`);
+//     for (let i = 0; i < steps.length; i++) {
+//       console.log(`【通信テスト】${steps[i].id} からサーバーへ [${steps[i].pts}点] の信号を送信`);
       
-      // 🔥 画面の書き換え処理などは一切行わず、サーバー（server.js）へ信号を飛ばすだけ！
-      socket.emit('sendVote', { voterId: steps[i].id, points: steps[i].pts });
+//       // 🔥 画面の書き換え処理などは一切行わず、サーバー（server.js）へ信号を飛ばすだけ！
+//       socket.emit('sendVote', { voterId: steps[i].id, points: steps[i].pts });
       
-      // 1.5秒待ってから次の人が投票する
-      await new Promise(resolve => setTimeout(resolve, 1500));
-    }
+//       // 1.5秒待ってから次の人が投票する
+//       await new Promise(resolve => setTimeout(resolve, 1500));
+//     }
 
-    // サーバー側の自動リセットが完全に終わる頃にボタンを復活させる
-    setTimeout(() => {
-      testBtn.disabled = false;
-      testBtn.innerText = "⚡ 本番通信テスト開始（審査員5人×2点）";
-    }, 2500);
-  });
-});
+//     // サーバー側の自動リセットが完全に終わる頃にボタンを復活させる
+//     setTimeout(() => {
+//       testBtn.disabled = false;
+//       testBtn.innerText = "⚡ 本番通信テスト開始（審査員5人×2点）";
+//     }, 2500);
+//   });
+// });
