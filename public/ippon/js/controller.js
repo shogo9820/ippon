@@ -93,12 +93,25 @@ socket.on('updateState', (state) => {
         document.getElementById('next-q').innerText = "次のお題はありません";
     }
 
-    if (state.status === 'question') {
-        if (state.buzzerQueue && state.buzzerQueue.length === 0 && state.votes && Object.keys(state.votes).length === 0) {
-            startTimer();
+    // 💡【大喜利総経過時間タイマーの修正ロジック】
+    // 司会者がお題を出してゲームが動いている間（statusがwaiting初期状態以外）は常に回し続ける
+    if (state.status !== 'waiting' && state.currentQuestion) {
+        
+        // 💡 画面に表示されているお題が、前に記憶していたお題と「違うお題」に切り替わった瞬間を検知！
+        if (state.currentQuestion !== window.lastTimerQuestion) {
+            console.log("【タイマー】新しいお題を検知したため、一からリスタートします。");
+            startTimer(); // ⏱️ タイマーを00:00からリセットして最初から開始
+            window.lastTimerQuestion = state.currentQuestion; // 現在のお題の文字を新しく記憶
+        } else {
+            // お題が同じ（回答中や投票中など）であれば、タイマーを止めずにそのままカウントを継続！
+            // ※もし万が一タイマーが予期せず止まっていた場合だけ、保険で再起動
+            if (!timerInterval) startTimer();
         }
-    } else if (state.status === 'waiting' || state.status === 'result') {
+        
+    } else {
+        // 🛑 ゲームの初期状態（waiting）や完全リセット時はタイマーをクリアして止める
         stopTimer();
+        window.lastTimerQuestion = "";
     }
 
     const btnCorrect = document.getElementById('action-correct-btn');
