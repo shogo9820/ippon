@@ -295,15 +295,20 @@ body {
     }
 }
 
-/* --- public/ippon/css/ippon.css の一番下に追加 --- */
+/* --- public/ippon/css/ippon.css の一番下（.ippon-gold-box部分）を差し替え --- */
 
-/* 👑 9枠（満票）に達した瞬間、中央にドカンと現れるIPPONの金色の箱 */
+/* 👑 満票時に画面の【ド中央】にドカンと現れるIPPONの金色の箱 */
 .ippon-gold-box {
     position: absolute;
     width: 650px;
     height: 250px;
     background-color: #ffcc00;
     color: #000000;
+    
+    /* 💡 修正：どんな画面サイズでも確実に縦横ド中央に配置する設定 */
+    top: 50%;
+    left: 50%;
+    
     display: flex;
     justify-content: center;
     align-items: center;
@@ -320,21 +325,21 @@ body {
     /* 四隅を少しだけ削った本家風の重厚な座布団形状 */
     clip-path: polygon(30px 0%, calc(100% - 30px) 0%, 100% 30px, 100% calc(100% - 30px), calc(100% - 30px) 100%, 30px 100%, 0% calc(100% - 30px), 0% 30px);
     
-    /* 出現時の大爆発アニメーション */
+    /* 出現時の大爆発アニメーション（※中央配置を維持するため translate(-50%, -50%) をブレンド） */
     animation: ipponBoxBomb 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
 }
 
 @keyframes ipponBoxBomb {
     0% {
         opacity: 0;
-        transform: scale(0.2) rotate(-10deg);
+        transform: translate(-50%, -50%) scale(0.2) rotate(-10deg);
     }
     70% {
         opacity: 1;
-        transform: scale(1.1) rotate(3deg);
+        transform: translate(-50%, -50%) scale(1.1) rotate(3deg);
     }
     100% {
         opacity: 1;
-        transform: scale(1.0) rotate(0deg);
+        transform: translate(-50%, -50%) scale(1.0) rotate(0deg);
     }
 }

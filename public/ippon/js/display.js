@@ -222,18 +222,18 @@ window.addEventListener('DOMContentLoaded', () => {
       { id: 'voter_E', pts: 2 }  // 最後の人が2点を入れて【計10票 ＝ 満票】に到達！
     ];
 
+    // 💡 修正：演出がじっくり堪能できるよう「1.5秒（1500ms）」刻みで1枠ずつ増えるテンポに変更
     for (let i = 0; i < steps.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 600)); // 600ms刻み
+      await new Promise(resolve => setTimeout(resolve, 1500)); // 👈 1.5秒じわじわタイマー
       console.log(`【テスト】${steps[i].id} が ${steps[i].pts}点 を投票`);
       socket.emit('sendVote', { voterId: steps[i].id, points: steps[i].pts });
     }
 
-    // 💡 満票に達した後はテスト側からは一切余計な通信を送らず、サーバーの自動リセット（1.8秒）をただ静かに待つ
-    // 💡 サーバーの処理がすべて終わって落ち着いた頃（3秒後）に、テストボタンだけをそっと復活させる
+    // 💡 修正：じっくり演出を見届けた後、6秒後にテストボタンを復活させる
     setTimeout(() => {
       testBtn.disabled = false;
       testBtn.innerText = "⚡ 5人自動投票テスト開始（満票10点）";
-      console.log("【テスト】全工程が終了しました。ボタンを再有効化します。");
-    }, 3500);
+      console.log("【テスト】全工程が終了しました。");
+    }, 6000);
   });
 });
