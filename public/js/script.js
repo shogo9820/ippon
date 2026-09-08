@@ -1,19 +1,21 @@
-// public/js/script.js
+// --- public/js/script.js 完全書き換え版 ---
 const socket = io();
 
-// PCのブラウザかスマホ（モバイル）かを判定
-const isMobile = /Mobi|Android|iPhone/i.test(navigator.userAgent);
-
-// 💡 PC大画面の場合のみ、サーバーへ制御スマホ用のQRコード画像をおねだりする
-if (!isMobile) {
-    socket.emit('requestQR', 'controller');
+// 💡 PWA対応：自動判定による強制リダイレクトを完全に廃止。
+// 💡 index.htmlのボタンから、手動で役割（テレビ画面か制御スマホか）を選ばせる仕様に変更！
+function chooseRole(role) {
+    if (role === 'pc-display') {
+        // 🟨 この端末を「PC（テレビ・メイン演出）画面」として進める場合
+        // （モードが決定するまでは recruiting フェーズとして各 display.html へ直接リダイレクト）
+        socket.emit('selectMode', 'ippon'); // デフォルトで大喜利モードを選択させて即座に進める場合
+        window.location.href = "/ippon/display.html";
+    } else if (role === 'controller-setup') {
+        // 📱 この端末を「制御スマホ（司会者リモコン）」として進める場合
+        // モード選択ボタンを画面に出現させる
+        document.getElementById("role-select-screen").style.display = "none";
+        document.getElementById("mode-select-screen").style.display = "block";
+    }
 }
-
-// サーバーから生成されたQR画像データを受け取ってPCの画面にはめ込む
-socket.on('responseControllerQR', (qrImageUrl) => {
-    const img = document.getElementById('qr-image');
-    if (img) img.src = qrImageUrl;
-});
 
 // 💡 ボタン操作：モード（大喜利かクイズか）が選ばれたとき
 function chooseMode(mode) {
@@ -23,7 +25,6 @@ function chooseMode(mode) {
 // 💡 ボタン操作：ゲームスタートが押されたとき
 function startGame() {
     socket.emit('startGame');
-    
     // 手元のスマホ画面をそのまま各モード専用の本番リモコン（controller.html）へ進める！
     const currentMode = window.lastStateMode === 'ippon' ? 'ippon' : 'quiz';
     window.location.href = "/" + currentMode + "/controller.html";
@@ -32,38 +33,32 @@ function startGame() {
 // 💡 ボタン操作：モード選択に戻るが押されたとき
 function backToMenu() {
     socket.emit('resetGame');
+    // PWAでの操作性を考慮し、役割選択の最初の画面へ綺麗に戻す
+    document.getElementById("mode-select-screen").style.display = "none";
+    document.getElementById("game-control-screen").style.display = "none";
+    document.getElementById("role-select-screen").style.display = "block";
 }
 
-// サーバーからのゲーム状態更新を受けてPC画面とスマホ画面を完全連動
+// サーバーからのゲーム状態更新を受けて画面の要素をパチパチ切り替える
 socket.on("updateState", (state) => {
     window.lastStateMode = state.mode;
 
-    // 【PC大画面側の処理】モードが選ばれたら自動的に各大喜利/クイズ専用PC画面へリダイレクト！
-    if (!isMobile) {
-        if (state.phase === "recruiting" || state.phase === "playing" || state.phase === "ranking") {
-            if (state.mode === "ippon") { window.location.href = "/ippon/display.html"; return; } 
-            else if (state.mode === "buzzer") { window.location.href = "/quiz/display.html"; return; }
-        }
-    }
+    // 💡【バグ防止】自動判定リダイレクトコードは完全に削除されました。
+    // これにより、司会者のスマホが勝手にテレビ画面に切り替わってしまう不具合を100%防ぎます。
 
-    // 【スマホ制御端末側の処理】フェーズに合わせてボタン表示をパチパチ切り替える
     if (state.phase === "setup") {
-        if (isMobile) {
-            // スマホ初期：2つのモード選択ボタンのみを表示！
-            document.getElementById("mobile-menu-container").style.display = "block";
-            document.getElementById("mode-select-screen").style.display = "block";
+        // 初期状態：役割選択画面を表示
+        const roleScreen = document.getElementById("role-select-screen");
+        if (roleScreen && roleScreen.style.display !== "none") {
+            roleScreen.style.display = "block";
+            document.getElementById("mode-select-screen").style.display = "none";
             document.getElementById("game-control-screen").style.display = "none";
-            document.getElementById("pc-setup-container").style.display = "none";
-        } else {
-            // PC初期：QRコード表示画面
-            document.getElementById("pc-setup-container").style.display = "block";
-            document.getElementById("mobile-menu-container").style.display = "none";
         }
     } else if (state.phase === "recruiting") {
-        if (isMobile) {
-            // モード選択後：ゲームスタートと戻るボタン ＆ 参加者リストの画面へ切り替え！
-            document.getElementById("mobile-menu-container").style.display = "block";
-            document.getElementById("mode-select-screen").style.display = "none";
+        // モード選択後：司会者リモコン側に「ゲームスタート」と「戻る」ボタン ＆ 参加者リストを表示！
+        const modeSelect = document.getElementById("mode-select-screen");
+        if (modeSelect && modeSelect.style.display === "block") {
+            modeSelect.style.display = "none";
             document.getElementById("game-control-screen").style.display = "block";
             
             const titleEl = document.getElementById("selected-mode-title");
@@ -75,13 +70,12 @@ socket.on("updateState", (state) => {
     }
 });
 
-// 💡 参加者がスマホでログインした名前を、手元のコントロール画面の下へリアルタイム表示！
+// 参加者がスマホでログインした名前を、手元のコントロール画面の下へリアルタイム表示！
 socket.on("updateUserList", (users) => {
     const listContainer = document.getElementById("ctrl-user-list");
     const countContainer = document.getElementById("current-voters-count");
     if (!listContainer) return;
 
-    // プレイヤー(buzzer)と審査員(voter)のみを抽出
     const filteredUsers = (users || []).filter(u => u.role === 'buzzer' || u.role === 'voter');
     if (countContainer) {
         countContainer.innerText = "👥 ログインした参加者 (" + filteredUsers.length + "人)";
