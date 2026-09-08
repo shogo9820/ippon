@@ -6,6 +6,22 @@
     <link rel="stylesheet" href="css/ippon.css">
     <script src="/socket.io/socket.io.js"></script>
     <!-- 💡 修正：MIMEエラーを出す不要な古いqrcode.jsの読み込み行を削除しました -->
+     <!-- 🎨 PWA用の設定図面（マニフェスト）を読み込み -->
+<link rel="manifest" href="/manifest.json">
+<!-- iPhone用のホーム画面アイコン設定（Safari用） -->
+<link rel="apple-touch-icon" href="/images/icon-192.png">
+
+<!-- PWAの管理人（Service Worker）をブラウザに登録するスクリプト -->
+<script>
+  if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
+      navigator.serviceWorker.register('/service-worker.js')
+        .then(reg => console.log('PWA Service Worker 登録成功！', reg.scope))
+        .catch(err => console.error('PWA登録エラー:', err));
+    });
+  }
+</script>
+
 </head>
 <body>
 
