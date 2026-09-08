@@ -294,3 +294,47 @@ body {
         transform: scale(1.05);
     }
 }
+
+/* --- public/ippon/css/ippon.css の一番下に追加 --- */
+
+/* 👑 9枠（満票）に達した瞬間、中央にドカンと現れるIPPONの金色の箱 */
+.ippon-gold-box {
+    position: absolute;
+    width: 650px;
+    height: 250px;
+    background-color: #ffcc00;
+    color: #000000;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 8rem;
+    font-weight: 900;
+    font-family: "Impact", "Arial Black", sans-serif;
+    letter-spacing: 0.05em;
+    border: 15px solid #000000;
+    box-shadow: 
+        0 0 0 10px #fff2a3,
+        0 30px 60px rgba(0,0,0,0.8);
+    z-index: 9999;
+    
+    /* 四隅を少しだけ削った本家風の重厚な座布団形状 */
+    clip-path: polygon(30px 0%, calc(100% - 30px) 0%, 100% 30px, 100% calc(100% - 30px), calc(100% - 30px) 100%, 30px 100%, 0% calc(100% - 30px), 0% 30px);
+    
+    /* 出現時の大爆発アニメーション */
+    animation: ipponBoxBomb 0.25s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+@keyframes ipponBoxBomb {
+    0% {
+        opacity: 0;
+        transform: scale(0.2) rotate(-10deg);
+    }
+    70% {
+        opacity: 1;
+        transform: scale(1.1) rotate(3deg);
+    }
+    100% {
+        opacity: 1;
+        transform: scale(1.0) rotate(0deg);
+    }
+}

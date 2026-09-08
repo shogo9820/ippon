@@ -20,31 +20,34 @@ function typeWriter(text, elementId, speed = 80) {
   }, speed);
 }
 
-// 💡 修正：現在のログイン人数から自動で満票を計算して枠を広げる
-function updateIpponCardFramework(votes, currentVotersCount = 3) {
+// --- public/ippon/js/display.js の updateIpponCardFramework を差し替え ---
+
+function updateIpponCardFramework(votes, currentVotersCount = 5) {
   const card = document.getElementById("ippon-stage-card");
+  const effect = document.getElementById("effect-area");
   if (!card) return;
 
-  const totalVotes = Object.values(votes || {}).reduce((a, b) => a + b, 0);
+  // 💡 1点＝1枠、2点＝2枠として、現在の「累積枠数（合計得点）」を純粋に計算
+  const totalSlots = Object.values(votes || {}).reduce((a, b) => a + b, 0);
   
-  // 💡 人数に合わせて満票基準を動的に変える（4人なら8、5人なら10、6人なら12）
-  const maxPossibleVotes = currentVotersCount * 2;
-
-  if (totalVotes >= maxPossibleVotes && maxPossibleVotes > 0) {
-      // 満票になった瞬間に「画面を埋め尽くす」
-      card.classList.add("full-voted");
+  // 💡【5人仕様】：9点（9枠）以上になったら満票（一本）として判定
+  if (totalSlots >= 9) {
+      // 9枠に達した瞬間に、真ん中にIPPONテキスト入りの黄色い箱をドカンと出現させる！
+      if (effect) {
+          effect.innerHTML = '<div class="ippon-gold-box">IPPON</div>';
+      }
+      // 枠自体は最大（9段階目）の状態で固定して一体化させる
+      card.style.boxShadow = "inset 0 0 0 14px #000000, inset 0 0 0 24px #fff2a3, inset 0 0 0 38px #000000, inset 0 0 0 48px #ffcc00, inset 0 0 0 62px #000000" +
+                             ", inset 0 0 0 300vw #ffcc00, inset 0 0 0 300vh #ffcc00"; // 画面を黄金で満たす
       return;
-  } else {
-      // 満票未満ならいつでも枠は元のサイズに戻れる（票の変動に対応）
-      card.classList.remove("full-voted");
   }
 
-  // 通常時のベースシャドウ
+  // 通常時の黒と黄色のベース額縁
   let shadowString = "inset 0 0 0 14px #000000, inset 0 0 0 24px #fff2a3, inset 0 0 0 38px #000000, inset 0 0 0 48px #ffcc00, inset 0 0 0 62px #000000";
   
-  // 1点ごとに内枠をレイヤー状に追加
-  for (let i = 1; i <= totalVotes; i++) {
-      let offsetBlack = 62 + (i * 16);
+  // 💡 1点＝1枠、2点＝2枠として、点数の数（最大8枠まで）だけ綺麗に内枠を1段階ずつ増殖
+  for (let i = 1; i <= totalSlots; i++) {
+      let offsetBlack = 62 + (i * 18); // 1マス18px刻みで内側に締まっていく
       let offsetGold = offsetBlack + 8;
       let offsetNextLine = offsetGold + 10;
       
@@ -112,37 +115,29 @@ socket.on("updateState", (state) => {
       }
       
     // 🗳️ 3. 回答権獲得・投票中・および「一本発生の瞬間（resultかつ満票）」
-    // 💡【修正ポイント】満票に達した瞬間（result）も、画面を切り替えずにこのブラックアウト＆名前表示を維持する！
-    } else if (state.status === "voting" || state.currentPresenter || (state.status === "result" && currentTotalVotes >= maxPossibleVotes)) {
+// --- public/ippon/js/display.js 内の該当ブロックを修正 ---
+
+    } else if (state.status === "voting" || state.currentPresenter || state.status === "result") {
       if (typingTimer) clearInterval(typingTimer);
       const fastest = state.currentPresenter || "回答者";
       
-      // 満票になったら黒背景を解除してゴールドアウト（full-voted）へ繋ぐ
-      if (currentTotalVotes >= maxPossibleVotes) {
+      // 9枠（一本）に達したらブラックアウトを解除して黄金と融合させる
+      const currentTotalVotes = Object.values(state.votes || {}).reduce((a, b) => a + b, 0);
+      if (currentTotalVotes >= 9) {
           card.classList.remove("black-out");
       } else {
           card.classList.add("black-out");
       }
       
-      content.innerHTML = '<div class="presenter-text">' + fastest + ' さん</div>';
+      // 💡 一本になっていない時だけ中央に「〇〇さん」の名前を表示する（一本時はIPPON箱が上書きする）
+      if (currentTotalVotes < 9) {
+          content.innerHTML = '<div class="presenter-text">' + fastest + ' さん</div>';
+      } else {
+          content.innerHTML = ''; // 一本時は名前を消して箱を目立たせる
+      }
       
-      // 枠の増殖・または画面埋め尽くしを実行
+      // 枠と中央の箱のリアルタイム演出を発動
       updateIpponCardFramework(state.votes, totalVotersCount);
-
-      // 満票未満の時だけ、右下にリアルタイムの点数バッジを出す
-      if (currentTotalVotes < maxPossibleVotes && currentTotalVotes > 0) {
-          if (effect) {
-              effect.innerHTML = '<div class="score-badge-container">' +
-                                 '<span class="score-badge-num">' + currentTotalVotes + '</span>' +
-                                 '<span class="score-badge-unit">点</span>' +
-                                 '</div>';
-          }
-      }
-      
-      // 満票（一本）に達していたら、文字をドカンと出す！
-      if (currentTotalVotes >= maxPossibleVotes && effect) {
-          effect.innerHTML = '<h1 class="ippon-flash">一本！！</h1>';
-      }
         
     // 📊 4. 一本にならずに司会者が手動で打ち切ったとき（純粋な結果発表）
     } else if (state.status === "result") {
