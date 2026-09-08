@@ -81,3 +81,13 @@ socket.on('updateState', (state) => {
         renderLoginScreen();
     }
 });
+
+// 💡 サーバーから重ならないおすすめの初期名前を受け取って入力欄にはめ込む
+socket.on('initDefaultName', (data) => {
+    const idInput = document.getElementById('voter-id');
+    // すでに文字を入力し始めていない場合（初期状態の「審査員A」や空っぽの時）だけ上書き
+    if (idInput && (idInput.value === "審査員A" || idInput.value === "")) {
+        idInput.value = data.defaultVoterName; // 「投票者1」「投票者2」等が入る
+    }
+});
+

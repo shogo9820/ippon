@@ -100,3 +100,13 @@ socket.on('buzzerResult', (data) => {
         statusDiv.style.color = "#2e9e45";
     }
 });
+
+// 💡 サーバーから重ならないおすすめの初期名前を受け取って入力欄にはめ込む
+socket.on('initDefaultName', (data) => {
+    const idInput = document.getElementById('player-id');
+    // すでにユーザーが自分で文字を入力し始めていない場合（初期状態の「プレイヤー」のままの時）だけ上書き
+    if (idInput && (idInput.value === "プレイヤー" || idInput.value === "")) {
+        idInput.value = data.defaultBuzzerName; // 「プレイヤー1」「プレイヤー2」等が入る
+    }
+});
+

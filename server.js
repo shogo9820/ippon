@@ -87,6 +87,17 @@ function sendState() {
 }
 
 io.on('connection', (socket) => {
+    // 💡【追加】新しく画面を開いたスマホへ、重ならない初期名前を提案する
+    // 現在ログイン中の「答（buzzer）」と「審（voter）」の人数をそれぞれカウント
+    const currentBuzzerCount = connectedUsers.filter(u => u.role === 'buzzer').length;
+    const currentVoterCount = connectedUsers.filter(u => u.role === 'voter').length;
+
+    // 次に入る人のためのおすすめ番号（現在の人数 + 1）
+    socket.emit('initDefaultName', {
+        defaultBuzzerName: `プレイヤー${currentBuzzerCount + 1}`,
+        defaultVoterName: `投票者${currentVoterCount + 1}`
+    });
+    
     socket.emit('updateState', gameState);
     socket.emit('updateUserList', connectedUsers);
 
