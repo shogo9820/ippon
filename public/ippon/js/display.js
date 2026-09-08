@@ -22,50 +22,51 @@ function typeWriter(text, elementId, speed = 80) {
 
 // --- public/ippon/js/display.js の updateIpponCardFramework を差し替え ---
 
-// --- public/ippon/js/display.js の updateIpponCardFramework を完全修正版に差し替え ---
+// --- public/ippon/js/display.js の updateIpponCardFramework を極太版に差し替え ---
 
 function updateIpponCardFramework(votes, currentVotersCount = 5) {
   const card = document.getElementById("ippon-stage-card");
   const effect = document.getElementById("effect-area");
   if (!card) return;
 
-  // 💡【完璧な仕様へ】1点なら1枠、2点なら2枠として、現在の「合計得点（票数）」を純粋に累積
+  // 1点＝1枠、2点＝2枠として、現在の「合計得点（票数）」を純粋に累積
   const totalVotes = Object.values(votes || {}).reduce((a, b) => a + b, 0);
   
-  // 💡【変数：満票 ＝ 投票者 * 2】の計算
+  // 【変数：満票 ＝ 投票者 * 2】の計算
   const maxPossiblePoints = currentVotersCount * 2;
 
-  // 💡【IF 票 ＝ 満票】なら中央の長方形を完全に埋めてIPPONの演出！
+  // 【IF 票 ＝ 満票】なら中央の長方形を完全に埋めてIPPONの演出！
   if (totalVotes >= maxPossiblePoints && maxPossiblePoints > 0) {
-      // 中央の開いている長方形部分を一瞬で黄金に埋め尽くす（card全体を黄金で覆う）
+      // 満票時は完全に画面を黄金で埋め尽くす（多重影を完全にリセットして一面をゴールドに）
       card.style.boxShadow = "inset 0 0 0 14px #000000, inset 0 0 0 24px #fff2a3, inset 0 0 0 38px #000000, inset 0 0 0 48px #ffcc00, inset 0 0 0 62px #000000" +
                              ", inset 0 0 0 300vw #ffcc00, inset 0 0 0 300vh #ffcc00";
-      
-      // 中央に「IPPON」の金色の箱の演出をドカンと出現させる！
       if (effect) {
           effect.innerHTML = '<div class="ippon-gold-box">IPPON</div>';
       }
       return;
   } else {
-      // 満票に達していない（1票目 〜 満票-1票目 の間）は演出エリアの箱を消しておく
       if (effect) effect.innerHTML = "";
   }
 
   // 通常時の黒と黄色のベース額縁デザイン
   let shadowString = "inset 0 0 0 14px #000000, inset 0 0 0 24px #fff2a3, inset 0 0 0 38px #000000, inset 0 0 0 48px #ffcc00, inset 0 0 0 62px #000000";
   
-  // 💡 1票、2票……満票の直前まで、現在の合計得点（票数）の分だけ内枠を1枚ずつ綺麗に内側に増殖
-  // 💡 どんな人数（4人, 5人, 6人）でも枠の締まり具合が綺麗に収まるよう、人数の最大値に合わせて幅を13pxに調整
+  // 💡【重要修正】満票時の枠の数（10枠や12枠）に合わせて、中央がぴったり埋まる「太さ」を自動で割り出す
+  // 5人の時（10枠）は1枠38px、6人の時（12枠）は1枠31px のように自動で極太の最適な幅になります
+  const stepWidth = Math.floor(380 / maxPossiblePoints); 
+  const goldThickness = Math.floor(stepWidth * 0.4); // 黄色い線の厚みも枠の太さに合わせて自動で肉厚化
+  const lineGap = Math.floor(stepWidth * 0.5);
+
+  // 現在の合計得点の数だけ、極太の内枠の壁を1枚ずつ内側に積み上げていく
   for (let i = 1; i <= totalVotes; i++) {
-      let offsetBlack = 62 + (i * 13); 
-      let offsetGold = offsetBlack + 5;
-      let offsetNextLine = offsetGold + 7;
+      let offsetBlack = 62 + (i * stepWidth); 
+      let offsetGold = offsetBlack + goldThickness;
+      let offsetNextLine = offsetGold + lineGap;
       
       shadowString += ", inset 0 0 0 " + offsetBlack + "px #ffcc00" +
                       ", inset 0 0 0 " + offsetGold + "px #fff2a3" +
                       ", inset 0 0 0 " + offsetNextLine + "px #000000";
   }
-  
   card.style.boxShadow = shadowString;
 }
 
