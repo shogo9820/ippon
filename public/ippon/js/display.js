@@ -171,17 +171,17 @@ socket.on("updateVotes", (votes) => {
     }
 });
 
-// --- public/ippon/js/display.js の一番下（テストボタン部分）を以下に差し替え ---
+// --- public/ippon/js/display.js の一番下（テストボタン部分）を完全修正 ---
 
 window.addEventListener('DOMContentLoaded', () => {
   const testBtn = document.createElement('button');
-  testBtn.innerText = "⚡ 5人自動投票テスト開始（満票10点）";
+  testBtn.innerText = "⚡ 本番通信テスト開始（審査員5人×2点）";
   testBtn.style.position = 'fixed';
   testBtn.style.top = '10px';
   testBtn.style.left = '10px';
   testBtn.style.zIndex = '9999';
   testBtn.style.padding = '8px 12px';
-  testBtn.style.background = '#28a745';
+  testBtn.style.background = '#007bff'; // 💡 通信テストだと分かりやすいよう「青色」に変更
   testBtn.style.color = '#fff';
   testBtn.style.border = 'none';
   testBtn.style.borderRadius = '4px';
@@ -195,45 +195,43 @@ window.addEventListener('DOMContentLoaded', () => {
 
   testBtn.addEventListener('click', async () => {
     testBtn.disabled = true;
-    testBtn.innerText = "⏳ テスト進行中...";
+    testBtn.innerText = "⏳ サーバー通信中...";
 
-    console.log("【テスト】擬似審査員5人をサーバーにログインさせます...");
-    socket.emit('joinUser', { name: '📊 テスト審査員1', role: 'voter' });
-    socket.emit('joinUser', { name: '📊 テスト審査員2', role: 'voter' });
-    socket.emit('joinUser', { name: '📊 テスト審査員3', role: 'voter' });
-    socket.emit('joinUser', { name: '📊 テスト審査員4', role: 'voter' });
-    socket.emit('joinUser', { name: '📊 テスト審査員5', role: 'voter' });
+    console.log("【通信テスト】本番と同じ信号をサーバーに送信します...");
 
-    // お題をセット
-    socket.emit('showQuestionText', "テスト用の長いお題文章です。スクロール制限のチェックも同時に行えます。");
-    
-    // サーバーの処理を少し待つ（800ms）
-    await new Promise(resolve => setTimeout(resolve, 800));
-    
-    // 解答者がボタンを押した状態にする
-    socket.emit('pressBuzzer', { playerName: '🎭 テスト解答者' });
+    // 💡 1. 実際のスマホがログインした時と100%同じ信号をサーバーへ送る
+    socket.emit('joinUser', { name: 'テスト審査員1', role: 'voter' });
+    socket.emit('joinUser', { name: 'テスト審査員2', role: 'voter' });
+    socket.emit('joinUser', { name: 'テスト審査員3', role: 'voter' });
+    socket.emit('joinUser', { name: 'テスト審査員4', role: 'voter' });
+    socket.emit('joinUser', { name: 'テスト審査員5', role: 'voter' });
 
-// 💡 テストコード内の steps の部分です（5人で2点ずつ入れて、合計10票満票にする）
+    // 💡 サーバーがログインを処理して、テレビ画面の「totalVotersCount」が5人になるのを少し待つ
+    await new Promise(resolve => setTimeout(resolve, 500));
+
+    // 💡 2. 本番と同じ、1.5秒刻みでスマホから「2点」のボタンがタップされた信号だけをサーバーへ送る
     const steps = [
-      { id: 'voter_A', pts: 2 }, // 2票増える
-      { id: 'voter_B', pts: 2 }, // さらに2票増える（計4票）
-      { id: 'voter_C', pts: 2 }, // さらに2票増える（計6票）
-      { id: 'voter_D', pts: 2 }, // さらに2票増える（計8票） 👉 満票まであと2枠の緊迫状態
-      { id: 'voter_E', pts: 1 }  // 最後の人が2点を入れて【計10票 ＝ 満票】に到達！
+      { id: 'テスト審査員1', pts: 2 },
+      { id: 'テスト審査員2', pts: 2 },
+      { id: 'テスト審査員3', pts: 2 },
+      { id: 'テスト審査員4', pts: 2 },
+      { id: 'テスト審査員5', pts: 1 }
     ];
 
-    // 💡 修正：演出がじっくり堪能できるよう「1.5秒（1500ms）」刻みで1枠ずつ増えるテンポに変更
     for (let i = 0; i < steps.length; i++) {
-      await new Promise(resolve => setTimeout(resolve, 1500)); // 👈 1.5秒じわじわタイマー
-      console.log(`【テスト】${steps[i].id} が ${steps[i].pts}点 を投票`);
+      console.log(`【通信テスト】${steps[i].id} からサーバーへ [${steps[i].pts}点] の信号を送信`);
+      
+      // 🔥 画面の書き換え処理などは一切行わず、サーバー（server.js）へ信号を飛ばすだけ！
       socket.emit('sendVote', { voterId: steps[i].id, points: steps[i].pts });
+      
+      // 1.5秒待ってから次の人が投票する
+      await new Promise(resolve => setTimeout(resolve, 1500));
     }
 
-    // 💡 修正：じっくり演出を見届けた後、6秒後にテストボタンを復活させる
+    // サーバー側の自動リセットが完全に終わる頃にボタンを復活させる
     setTimeout(() => {
       testBtn.disabled = false;
-      testBtn.innerText = "⚡ 5人自動投票テスト開始（満票10点）";
-      console.log("【テスト】全工程が終了しました。");
-    }, 6000);
+      testBtn.innerText = "⚡ 本番通信テスト開始（審査員5人×2点）";
+    }, 2500);
   });
 });
