@@ -54,52 +54,59 @@ input[type="text"] {
     box-shadow: 0 0 10px #ff3333;
 }
 
-/* 📺 ③ 問題文表示欄：PC画面（stage-card）の多重額縁と形状（clip-path）を100%完全同一再現 */
+/* 📺 ③ 問題文表示欄：PCの多重デザインを保ちつつ、スマホ向けに枠線を細く＆自動拡張化 */
 .stage-card {
     position: relative;
     width: 100%;
-    min-height: 140px;
+    
+    /* 💡 修正点：高さを固定（min-height）にせず、長い問題文が入っても箱が下へ自動的に大きく広がるようにします */
+    height: auto;
+    min-height: 120px; 
+    
     display: flex;
     justify-content: center;
     align-items: center;
     text-align: center;
     box-sizing: border-box;
-    padding: 25px 35px;
+    
+    /* 💡 修正点：文字の周りに十分な余白（上下30px、左右40px）を持たせ、枠線と文字が絶対に重ならないようにします */
+    padding: 30px 40px;
     margin: 15px 0 25px 0;
 
-    /* PC大画面と全く同じ120px（スマホ比率用に縮小調整せず同一比率）の角削ぎフォルム */
-    clip-path: polygon(30px 0%, calc(100% - 30px) 0%, 100% 30px, 100% calc(100% - 30px), calc(100% - 30px) 100%, 30px 100%, 0% calc(100% - 30px), 0% 30px);
+    /* 6角形の形状（文字がはみ出さないよう、削る角のサイズを30pxから20pxに少し微調整しています） */
+    clip-path: polygon(20px 0%, calc(100% - 20px) 0%, 100% 20px, 100% calc(100% - 20px), calc(100% - 20px) 100%, 20px 100%, 0% calc(100% - 20px), 0% 20px);
 }
 
-/* 🟨 PCの大喜利画面（ippon.cssの36行目〜）の額縁シャドウをそのまま適用 */
+/* 🟨 大喜利モード：多重の重厚感を残したまま、線を細く（インセットを数ミリ単位に）スケールダウン */
 .stage-card.ippon-mode {
     background-color: #ffcc00;
     box-shadow:
-        inset 0 0 0 8px #000000,
-        inset 0 0 0 16px #fff2a3,
-        inset 0 0 0 28px #000000,
-        inset 0 0 0 36px #ffcc00,
-        inset 0 0 0 48px #000000;
+        inset 0 0 0 3px #000000,
+        inset 0 0 0 5px #fff2a3,
+        inset 0 0 0 9px #000000,
+        inset 0 0 0 12px #ffcc00,
+        inset 0 0 0 16px #000000;
 }
 
-/* 🟥 PCのクイズ画面（quiz.cssの184行目〜）の額縁シャドウをそのまま適用 */
+/* 🟥 クイズモード：同じく多重額縁の見た目を維持しつつ、内側を圧迫しないよう細くシャープに修正 */
 .stage-card.quiz-mode {
     background-color: #ffffff;
     box-shadow:
-        inset 0 0 0 8px #ff3333,
-        inset 0 0 0 16px #ffcccc,
-        inset 0 0 0 28px #000000,
-        inset 0 0 0 36px #ff3333,
-        inset 0 0 0 48px #000000;
+        inset 0 0 0 3px #ff3333,
+        inset 0 0 0 5px #ffcccc,
+        inset 0 0 0 9px #000000,
+        inset 0 0 0 12px #ff3333,
+        inset 0 0 0 16px #000000;
 }
 
-/* 📝 テキスト表示（PC画面のstage-textと同様、極太の文字色黒） */
+/* 📝 テキスト表示（文字が読みやすいようサイズを調整し、しっかり中央に配置） */
 .stage-text {
-    font-size: 1.25rem;
+    font-size: 1.15rem;
     font-weight: 900;
     line-height: 1.5;
     color: #000000;
     word-break: break-all;
+    width: 100%;
 }
 
 /* 🟥 巨大早押し丸ボタン */
