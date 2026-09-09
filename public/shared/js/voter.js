@@ -41,11 +41,12 @@ function submitLogin() {
     if (waitMsg) waitMsg.style.display = 'block';
 }
 
-// 💡【新方式】ボタンを押すたびにカウントアップして点数をリアルタイムに送る関数
+// --- public/shared/js/voter.js の handleVoteClick 以降を以下に差し替えてください ---
+
 function handleVoteClick() {
     if (!myConfirmedName || localTapCount >= 2) return;
 
-    localTapCount++; // タップ数を増やす（最大2）
+    localTapCount++; 
 
     if (navigator.vibrate) {
         navigator.vibrate(60); 
@@ -55,19 +56,32 @@ function handleVoteClick() {
     socket.emit('sendVote', { voterId: myConfirmedName, points: localTapCount });
 
     // 手元の表示をリアルタイムに変更
-    updateVoteButtonUI();
+    // 💡【修正】引数に true を渡して、投票中であることを伝える
+    updateVoteButtonUI(true);
 }
 
-// 💡 タップ数に応じてボタンとミニランプの色・テキストをアップデートするUI制御
-function updateVoteButtonUI() {
+// 💡【修正】現在投票受付フェーズかどうかのフラグ（isVotingTime）を引数で受け取るように変更
+function updateVoteButtonUI(isVotingTime) {
     const btn = document.getElementById('action-vote-btn');
     const lamp = document.getElementById('voter-status-lamp');
     const statusText = document.getElementById('voter-status-text');
     if (!btn || !lamp || !statusText) return;
 
+    // 💡【追加ガード】そもそも今が「投票受付中」じゃないなら、点数に関わらず一律で強制ロック！
+    if (!isVotingTime) {
+        btn.innerText = "回答者を待っています...";
+        btn.className = "single-vote-btn pts-2"; // グレーアウト用の見た目クラスを使い回し
+        btn.disabled = true; // 物理ロック
+        lamp.className = "voter-lamp lamp-0";
+        statusText.innerText = "誰かがボタンを押すまでお待ちください";
+        return;
+    }
+
+    // 💡 以下は、投票受付中の時のカウントに応じた表示切り替え
     if (localTapCount === 1) {
         btn.innerText = "おもろい！ (あと1回押せます)";
         btn.className = "single-vote-btn pts-1";
+        btn.disabled = false; // 1点時はまだ押せる
         lamp.className = "voter-lamp lamp-1";
         statusText.innerText = "現在: 1点送信中 💛";
     } else if (localTapCount === 2) {
@@ -77,7 +91,7 @@ function updateVoteButtonUI() {
         lamp.className = "voter-lamp lamp-2";
         statusText.innerText = "現在: 2点送信中 🔥 (上限到達)";
     } else {
-        // 0点時（初期化状態）
+        // 0点時（投票時間になった直後の初期状態）
         btn.innerText = "おもろい！";
         btn.className = "single-vote-btn pts-0";
         btn.disabled = false;
@@ -111,11 +125,18 @@ socket.on('updateState', (state) => {
             `;
         }
         
-        // 💡 MCが次の問題に進めるか、または自動復帰で「question」状態に戻ったらカウントを0クリア！
+        // 💡【重要：今回の追加制御】
+        // サーバーの状態が 'voting'（誰かが回答権を獲得した状態）のときだけ、投票時間を true にする
+        const isVotingTime = (state.status === 'voting');
+
+        // 💡 お題が新しく切り替わった、あるいはリセットされて「question」状態に戻ったらカウントを0クリア！
         if (state.status === 'question' && localTapCount !== 0) {
             localTapCount = 0;
-            updateVoteButtonUI();
         }
+
+        // 💡 サーバーから届いた最新のステータス（投票中か、待機中か）を元にボタンのロックを毎回更新する
+        updateVoteButtonUI(isVotingTime);
+
     } else if (state.phase === 'setup') {
         hasLoggedIn = false;
         localTapCount = 0;
@@ -123,7 +144,7 @@ socket.on('updateState', (state) => {
     }
 });
 
-// 💡【追加】サーバーから重複ログインエラーが返ってきたときの処理
+// 重複ログインエラー処理（既存のまま）
 socket.on('joinError', (data) => {
     alert(data.message);
     hasLoggedIn = false;
