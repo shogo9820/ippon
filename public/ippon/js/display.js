@@ -47,44 +47,42 @@ function updateIpponCardFramework(votes, currentVotersCount = 5) {
   }
 
   // 2. 💡【人数連動仕様の太さ計算】
-  // 本家のような「黄色リングと黒い溝のシマ模様」を画面いっぱいに綺麗に収めるための1マスの太さ
-  const stepWidth = maxPossiblePoints > 0 ? (340 / maxPossiblePoints) : 25; 
+  // クイズモードの画像と全く同じ美しい六角形の中央に、本家のような縞模様を収めるための1マスの太さ
+  const stepWidth = maxPossiblePoints > 0 ? (320 / maxPossiblePoints) : 25; 
   
   // 3. 💡【CSS変数への数字代入】
   card.style.setProperty('--current-votes', totalVotes);
   card.style.setProperty('--step-width', `${stepWidth}px`);
   card.style.setProperty('--gold-thickness', `${stepWidth * 0.55}px`); // 肉厚な黄色枠の幅
-  card.style.setProperty('--black-gap', `${stepWidth * 0.35}px`);      // デコボコを際立たせる深い黒い溝の幅
+  card.style.setProperty('--black-gap', `${stepWidth * 0.35}px`);      // 凹凸を際立たせる深い黒い溝の幅
   card.style.setProperty('--light-line', `${stepWidth * 0.1}px`);      // キラッと光る白熱ラインの幅
 
-  // 4. 💡【形状の完全復元：本家と1:1で一致する「極太多重リング」の折り重なり】
-  // 壊してしまっていた外側の形状を、四隅が120pxで大胆に斜めカットされた「あの美しい横長六角形」へ完全に復元・固定します！
-  card.style.clipPath = "polygon(120px 0%, calc(100% - 120px) 0%, 100% 120px, 100% calc(100% - 120px), calc(100% - 120px) 100%, 120px 100%, 0% calc(100% - 120px), 0% 120px)";
-
-  // 元々の美しく重厚なベース額縁デザイン（62px分）
+  // 4. 💡【修正完了：元々あった美しいベース額縁（62px分）をそのまま固定】
+  // 変な上書き（clipPathなど）はすべて消去し、元々の完璧な六角形フレームの値をそのまま活かします。
   let shadowString = "inset 0 0 0 14px #000000, inset 0 0 0 24px #fff2a3, inset 0 0 0 38px #000000, inset 0 0 0 48px #ffcc00, inset 0 0 0 62px #000000";
   
-  // 💡 1票入るごとに、復元された美しい六角形の角度を保ったまま、
-  // 【黄色 ➡️ ハイライト ➡️ 深い真っ黒な溝】が多重リングとして綺麗に繰り返され、
-  // 奥にいくほど深い立体段差の影（rgba）が落ちる本家特有の数式に結合しました。
+  // 💡【正しい重ね順：全て足し算による3Dデコボコ数式】
+  // insetシャドウは「数値が大きいものほど上層を覆い尽くす」というブラウザの絶対ルールに合わせ、
+  // 62pxのフチから内側に向かって【①黄色 ➡️ ②立体段差影 ➡️ ③白熱ライン ➡️ ④深い黒い溝 ➡️ ⑤未開拓の黒（最大値）】
+  // の順番で上からパキッと重なり合うように、正しい足し算のみで組み立て直しました。
   if (totalVotes > 0) {
       shadowString += 
-          /* 🟨 A. 増える黄色枠ブロックのベース壁（ベースフチ62pxからスタート） */
+          /* 🟨 ① 増える黄色枠ブロックのベース壁 */
           ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width)) - var(--black-gap) - var(--light-line) - var(--gold-thickness)) #ffcc00" +
           
-          /* 👤 B. 黄色の壁の上に、本家画像のようなドス黒い「立体的な段差影」を乗せてガタガタ感を出す */
-          ", inset 0 0 8px calc(62px + (var(--current-votes) * var(--step-width)) - var(--black-gap) - var(--light-line) - var(--gold-thickness)) rgba(0,0,0,0.75)" +
+          /* 👤 ② 黄色の壁のフチに乗せる、ドス黒い「立体的な段差影」（これで見本画像のようなデコボコになります） */
+          ", inset 0 0 8px calc(62px + (var(--current-votes) * var(--step-width)) - var(--black-gap) - var(--light-line) - var(--gold-thickness)) rgba(0,0,0,0.8)" +
           
-          /* 🌟 C. 黄色枠の表面のキワで綺麗に反射して光る、白熱ハイライトライン */
+          /* 🌟 ③ 黄色枠の表面のキワで綺麗に反射して光る、白熱ハイライトライン */
           ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width)) - var(--black-gap) - var(--light-line)) #fff2a3" +
           
-          /* ⬛ D. 本家最大の特徴：次の黄色枠との間にポッカリと口を開ける「完全に真っ黒な深い溝（隙間）」 */
+          /* ⬛ ④ 本家最大の特徴：次の黄色枠との間にポッカリと口を開ける「完全に真っ黑な深い溝」 */
           ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width)) - var(--black-gap)) #000000" +
           
-          /* 👤 E. その溝の底にさらに「深い沈み込み影」を落として、崖のような高低差を表現する */
+          /* 👤 ⑤ その溝の底にさらに「深い沈み込み影」を落として高低差を表現 */
           ", inset 0 0 12px calc(62px + (var(--current-votes) * var(--step-width)) - var(--black-gap)) rgba(0,0,0,0.95)" +
           
-          /* ⬛ F. 最後に、中央のまだ票が入っていない真っ黒な未開拓エリア（締めくくりの黒い壁） */
+          /* ⬛ ⑥ 最後に、中央のまだ票が入っていない真っ黒な未開拓エリア（締めくくりの黒い壁） */
           ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width))) #000000";
   }
   
