@@ -68,6 +68,9 @@ socket.on('updateState', (state) => {
         const myScore = (state.scores && state.scores[myConfirmedName] !== undefined) ? state.scores[myConfirmedName] : 0;
         const currentQuestionText = state.currentQuestion || "（出題をお待ちください）";
 
+        // 💡 現在のモードに合わせてPC画面と同じデザイン（ippon用の黄色、quiz用の白赤）に切り替えるクラス
+        const currentModeClass = (state.mode === 'ippon') ? 'pc-style-ippon' : 'pc-style-quiz';
+
         isMyTurn = (state.currentPresenter === myConfirmedName);
 
         // 💡 自分の番ならランプを点灯させるクラスを付与
@@ -77,7 +80,6 @@ socket.on('updateState', (state) => {
         let btnDisabled = true;
 
         if (isMyTurn) {
-            // 💡 ご指示通り、回答権を獲得したときに「解答権の獲得」と表示
             statusText = "解答権の獲得";
             btnDisabled = true;
         } else {
@@ -91,23 +93,23 @@ socket.on('updateState', (state) => {
             }
         }
 
-        // 💡 ご指示いただいた通りの純粋な縦並びUI
+        // 💡 ご指示いただいた通りの純粋な縦並びUI（問題文表示欄をPCと同じデザインへ）
         container.innerHTML = `
-            <!-- ランプ -->
+            <!-- ① ランプ -->
             <div class="${lampClass}"></div>
 
-            <!-- プレイヤー名 -->
-            <div style="font-size:1.1rem; font-weight:bold; margin-bottom:15px;">プレイヤー: ${myConfirmedName}</div>
+            <!-- ② プレイヤー名 -->
+            <div style="font-size:1.1rem; font-weight:bold; margin-bottom:15px; color:#1a1a1a;">プレイヤー: ${myConfirmedName}</div>
 
-            <!-- 問題文表示欄 -->
-            <div style="border:1px solid #dcd6cd; padding:15px; border-radius:10px; margin-bottom:20px; font-size:1.2rem; font-weight:bold; background:#fafafa; color:#1a1a1a;">
-                ${currentQuestionText}
+            <!-- ③ 問題文表示欄（PC画面と全く同じ形状・多重額縁デザインをスマホサイズに再現） -->
+            <div id="mini-stage-card" class="${currentModeClass}">
+                <div class="mini-stage-text">${currentQuestionText}</div>
             </div>
 
-            <!-- スコア・回答権の有無・ボタン -->
+            <!-- ④ 下部操作エリア -->
             <div>
                 <div class="score-display">現在のスコア: <span id="my-score">${myScore}</span> pt</div>
-                <div style="font-size:1.1rem; font-weight:bold; margin-bottom:15px;">回答権の有無: ${statusText}</div>
+                <div style="font-size:1.1rem; font-weight:bold; margin-bottom:15px; color:#1a1a1a;">回答権の有無: ${statusText}</div>
                 <button id="buzzer-btn" onclick="triggerBuzzer()" ${btnDisabled ? 'disabled' : ''}>PUSH</button>
             </div>
         `;

@@ -56,6 +56,54 @@ input[type="text"] {
     box-shadow: 0 0 10px #ff3333;
 }
 
+/* 📺 PC大画面をそのままスマホサイズに落とし込んだ共通土台（6角形クリップパス） */
+#mini-stage-card {
+    position: relative;
+    width: 100%;
+    min-height: 120px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    box-sizing: border-box;
+    padding: 20px;
+    margin-bottom: 20px;
+
+    /* PC大画面のステージカードと全く同じ6角形クリップパスの比率 */
+    clip-path: polygon(30px 0%, calc(100% - 30px) 0%, 100% 30px, 100% calc(100% - 30px), calc(100% - 30px) 100%, 30px 100%, 0% calc(100% - 30px), 0% 30px);
+}
+
+/* 🟨 PCの大喜利（IPPON）画面と同じ多重額縁 shadow */
+#mini-stage-card.pc-style-ippon {
+    background-color: #ffcc00;
+    box-shadow:
+        inset 0 0 0 2px #000000,
+        inset 0 0 0 4px #fff2a3,
+        inset 0 0 0 7px #000000,
+        inset 0 0 0 9px #ffcc00,
+        inset 0 0 0 12px #000000;
+}
+
+/* 🟥 PCのクイズ画面と同じホワイト＆レッド多重額縁 shadow */
+#mini-stage-card.pc-style-quiz {
+    background-color: #ffffff;
+    box-shadow:
+        inset 0 0 0 2px #ff3333,
+        inset 0 0 0 4px #ffcccc,
+        inset 0 0 0 7px #000000,
+        inset 0 0 0 9px #ff3333,
+        inset 0 0 0 12px #000000;
+}
+
+/* 📝 表示される問題文テキストのスタイル */
+.mini-stage-text {
+    font-size: 1.15rem;
+    font-weight: 900;
+    line-height: 1.4;
+    color: #000000; /* PC画面と同じく文字色は黒 */
+    word-break: break-all;
+}
+
 /* 🟥 巨大早押し丸ボタン */
 #buzzer-btn {
     background-color: #ff3333;
