@@ -101,15 +101,31 @@ io.on('connection', (socket) => {
     socket.emit('updateState', gameState);
     socket.emit('updateUserList', connectedUsers);
 
+// --- server.js の socket.on('joinUser', ...) 周辺を以下に差し替えてください ---
+
     socket.on('joinUser', (data) => {
         if (!data.name) return;
-        socket.playerName = data.name;
-        socket.playerRole = data.role;
-        if (data.role === 'buzzer' && gameState.scores[data.name] === undefined) {
-            gameState.scores[data.name] = 0;
+        
+        const name = data.name.trim();
+        const role = data.role;
+
+        // 💡【追加】同じ名前で同じ役割のユーザーがすでに存在するかチェック
+        const isDuplicate = connectedUsers.some(u => u.name === name && u.role === role);
+        if (isDuplicate) {
+            // 重複している場合は本人にエラーを返し、処理を中断する
+            socket.emit('joinError', { message: `「${name}」はすでに使用されています。別の名前を入力してください。` });
+            return;
         }
+
+        socket.playerName = name;
+        socket.playerRole = role;
+        
+        if (role === 'buzzer' && gameState.scores[name] === undefined) {
+            gameState.scores[name] = 0;
+        }
+        
         connectedUsers = connectedUsers.filter(u => u.id !== socket.id);
-        connectedUsers.push({ id: socket.id, name: data.name, role: data.role });
+        connectedUsers.push({ id: socket.id, name: name, role: role });
         io.emit('updateUserList', connectedUsers);
         sendState();
     });

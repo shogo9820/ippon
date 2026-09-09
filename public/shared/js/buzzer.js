@@ -119,3 +119,17 @@ socket.on('updateState', (state) => {
         renderLoginScreen();
     }
 });
+
+// --- buzzer.js の一番下（または適当な場所）に追記してください ---
+socket.on('joinError', (data) => {
+    alert(data.message);
+    hasLoggedIn = false;
+    
+    // 入力欄とログインボタンを復活させる
+    const nameInput = document.getElementById('player-name');
+    if (nameInput) nameInput.disabled = false;
+    const loginBtn = document.getElementById('login-btn');
+    if (loginBtn) loginBtn.style.display = 'block';
+    const waitMsg = document.getElementById('wait-msg');
+    if (waitMsg) waitMsg.style.display = 'none';
+});

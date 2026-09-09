@@ -1,9 +1,8 @@
-/* public/shared/css/voter.css */
 body {
     font-family: system-ui, -apple-system, sans-serif;
     margin: 0;
     padding: 20px;
-    background-color: #fffdf2; /* ほんのり黄色がかった背景 */
+    background-color: #fffdf2;
     color: #1a1a1a;
     display: flex;
     justify-content: center;
@@ -26,10 +25,7 @@ body {
 h2 {
     font-size: 1.6rem;
     font-weight: 900;
-    margin-top: 0;
     margin-bottom: 24px;
-    color: #1a1a1a;
-    letter-spacing: 0.03em;
 }
 
 input[type="text"] {
@@ -44,63 +40,68 @@ input[type="text"] {
     background-color: #fafafa;
 }
 
-input[type="text"]:focus {
-    border-color: #ffd400;
-    background-color: #fff;
+/* 🚨 投票状態を表すミニサークルランプ */
+.voter-lamp {
+    width: 30px;
+    height: 30px;
+    border-radius: 50%;
+    margin: 0 auto 20px auto;
+    border: 2px solid #555;
+    transition: all 0.15s ease;
 }
+.voter-lamp.lamp-0 { background: #dddddd; }
+.voter-lamp.lamp-1 { background: #ffd400; box-shadow: 0 0 10px #ffd400; }
+.voter-lamp.lamp-2 { background: #ffae00; box-shadow: 0 0 15px #ffae00; border-color: #ffae00; }
 
-/* 🗳️ 投票ボタンの共通ベースデザイン */
-.vote-btn {
-    background-color: #ffd400; /* 通常はあざやかな黄色 */
-    color: #1a1a1a;
-    font-size: 1.5rem;
-    font-weight: bold;
-    padding: 22px;
-    margin: 12px 0;
-    border-radius: 12px;
+/* 🗳️ 新・統合1ボタンのデザイン */
+.single-vote-btn {
     width: 100%;
+    font-size: 1.6rem;
+    font-weight: 900;
+    padding: 30px 20px;
+    border-radius: 16px;
     border: none;
     cursor: pointer;
     display: block;
-    box-shadow: 0 6px 14px rgba(255, 212, 0, 0.25);
-    transition: transform 0.1s ease, background-color 0.2s ease, box-shadow 0.2s ease;
+    transition: all 0.1s ease;
+    box-sizing: border-box;
 }
 
-/* ボタンを押したときのへこむアニメーション */
-.vote-btn:active {
-    transform: translateY(2px);
+/* 0タップ目：通常状態（黄色） */
+.single-vote-btn.pts-0 {
+    background-color: #ffd400;
+    color: #1a1a1a;
+    box-shadow: 0 8px 0 #ccaa00, 0 10px 20px rgba(255, 212, 0, 0.3);
+}
+.single-vote-btn.pts-0:active {
+    transform: translateY(6px);
+    box-shadow: 0 2px 0 #ccaa00, 0 4px 8px rgba(255, 212, 0, 0.2);
 }
 
-/* 0点ボタン（スルー・おもろくない） */
-.vote-btn-0 {
-    background: #eeeeee !important;
-    color: #555555 !important;
-    box-shadow: none !important;
-    font-size: 1.2rem;
-    padding: 16px;
+/* 1タップ目：1点状態（より濃い山吹色） */
+.single-vote-btn.pts-1 {
+    background-color: #ffae00;
+    color: #ffffff;
+    box-shadow: 0 8px 0 #c68800, 0 10px 20px rgba(255, 174, 0, 0.3);
 }
-.vote-btn-0:active {
-    background: #dddddd !important;
-}
-
-/* 2点ボタン（大爆笑・本家でいうボタン2個押し） */
-.vote-btn-2 {
-    background: #ffae00 !important; /* あざやかなオレンジ */
-    color: #ffffff !important;
-    box-shadow: 0 6px 14px rgba(255, 174, 0, 0.35) !important;
-}
-.vote-btn-2:active {
-    background: #e69d00 !important;
+.single-vote-btn.pts-1:active {
+    transform: translateY(6px);
+    box-shadow: 0 2px 0 #c68800, 0 4px 8px rgba(255, 174, 0, 0.2);
 }
 
-/* 現在の投票ステータス表示エリア */
-.status {
-    font-size: 1.1rem;
+/* 2タップ目：上限到達ロック（グレーアウト） */
+.single-vote-btn.pts-2 {
+    background-color: #bbbbbb !important;
+    color: #666666 !important;
+    box-shadow: 0 4px 0 #888888 !important;
+    transform: translateY(4px);
+    cursor: not-allowed;
+}
+
+/* 下部ステータステキスト */
+.status-msg {
+    font-size: 1.05rem;
     font-weight: bold;
     margin-top: 20px;
-    padding: 12px;
-    border-radius: 8px;
-    background-color: #f0fdf4;
-    color: #16a34a;
-    border: 1px solid #bbf7d0;
+    color: #555555;
 }
