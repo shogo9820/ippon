@@ -1,25 +1,24 @@
 body {
     font-family: system-ui, -apple-system, sans-serif;
     margin: 0;
-    padding: 20px;
-    background-color: #f7f6f3;
+    padding: 0;
+    background-color: #f7f6f3; /* 元々の背景色 */
     color: #1a1a1a;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    min-height: 90vh;
+    width: 100vw;
+    height: 100vh;
+    box-sizing: border-box;
 }
 
+/* 💡 白い箱を完全撤廃し、画面いっぱいのレイアウトに変形 */
 .buzzer-container {
-    background: #ffffff;
-    padding: 30px 20px;
-    border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-    border: 1px solid #dcd6cd;
-    text-align: center;
     width: 100%;
-    max-width: 400px;
+    height: 100%;
+    padding: 20px;
     box-sizing: border-box;
+    text-align: center;
+    background: transparent;
+    box-shadow: none;
+    border: none;
 }
 
 input[type="text"] {
@@ -31,6 +30,7 @@ input[type="text"] {
     outline: none;
     box-sizing: border-box;
     text-align: center;
+    background: #ffffff;
 }
 
 .score-display {
@@ -40,67 +40,65 @@ input[type="text"] {
     color: #555;
 }
 
-/* 🚨 ランプ設定（通常：消灯グレー） */
+/* 🚨 ① ランプ設定 */
 .buzzer-lamp {
     width: 35px;
     height: 35px;
     border-radius: 50%;
     background: #aaaaaa;
     border: 2px solid #555555;
-    margin: 0 auto 15px auto;
+    margin: 10px auto 15px auto;
 }
-
-/* 👑 ランプ点灯時（赤く光る） */
 .buzzer-lamp.lamp-active {
     background: #ff3333;
     box-shadow: 0 0 10px #ff3333;
 }
 
-/* 📺 PC大画面をそのままスマホサイズに落とし込んだ共通土台（6角形クリップパス） */
-#mini-stage-card {
+/* 📺 ③ 問題文表示欄：PC画面（stage-card）の多重額縁と形状（clip-path）を100%完全同一再現 */
+.stage-card {
     position: relative;
     width: 100%;
-    min-height: 120px;
+    min-height: 140px;
     display: flex;
     justify-content: center;
     align-items: center;
     text-align: center;
     box-sizing: border-box;
-    padding: 20px;
-    margin-bottom: 20px;
+    padding: 25px 35px;
+    margin: 15px 0 25px 0;
 
-    /* PC大画面のステージカードと全く同じ6角形クリップパスの比率 */
+    /* PC大画面と全く同じ120px（スマホ比率用に縮小調整せず同一比率）の角削ぎフォルム */
     clip-path: polygon(30px 0%, calc(100% - 30px) 0%, 100% 30px, 100% calc(100% - 30px), calc(100% - 30px) 100%, 30px 100%, 0% calc(100% - 30px), 0% 30px);
 }
 
-/* 🟨 PCの大喜利（IPPON）画面と同じ多重額縁 shadow */
-#mini-stage-card.pc-style-ippon {
+/* 🟨 PCの大喜利画面（ippon.cssの36行目〜）の額縁シャドウをそのまま適用 */
+.stage-card.ippon-mode {
     background-color: #ffcc00;
     box-shadow:
-        inset 0 0 0 2px #000000,
-        inset 0 0 0 4px #fff2a3,
-        inset 0 0 0 7px #000000,
-        inset 0 0 0 9px #ffcc00,
-        inset 0 0 0 12px #000000;
+        inset 0 0 0 8px #000000,
+        inset 0 0 0 16px #fff2a3,
+        inset 0 0 0 28px #000000,
+        inset 0 0 0 36px #ffcc00,
+        inset 0 0 0 48px #000000;
 }
 
-/* 🟥 PCのクイズ画面と同じホワイト＆レッド多重額縁 shadow */
-#mini-stage-card.pc-style-quiz {
+/* 🟥 PCのクイズ画面（quiz.cssの184行目〜）の額縁シャドウをそのまま適用 */
+.stage-card.quiz-mode {
     background-color: #ffffff;
     box-shadow:
-        inset 0 0 0 2px #ff3333,
-        inset 0 0 0 4px #ffcccc,
-        inset 0 0 0 7px #000000,
-        inset 0 0 0 9px #ff3333,
-        inset 0 0 0 12px #000000;
+        inset 0 0 0 8px #ff3333,
+        inset 0 0 0 16px #ffcccc,
+        inset 0 0 0 28px #000000,
+        inset 0 0 0 36px #ff3333,
+        inset 0 0 0 48px #000000;
 }
 
-/* 📝 表示される問題文テキストのスタイル */
-.mini-stage-text {
-    font-size: 1.15rem;
+/* 📝 テキスト表示（PC画面のstage-textと同様、極太の文字色黒） */
+.stage-text {
+    font-size: 1.25rem;
     font-weight: 900;
-    line-height: 1.4;
-    color: #000000; /* PC画面と同じく文字色は黒 */
+    line-height: 1.5;
+    color: #000000;
     word-break: break-all;
 }
 

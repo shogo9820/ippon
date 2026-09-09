@@ -8,17 +8,20 @@ window.addEventListener('DOMContentLoaded', () => {
 });
 
 function renderLoginScreen() {
+    // 💡 ログイン画面も「白い箱」をなくすため、全体を覆うように構成します
     const container = document.querySelector('.buzzer-container');
     if (!container) return;
     
     container.innerHTML = `
-        <div style="margin-bottom: 20px;">
+        <div style="max-width:400px; margin:0 auto; padding-top:40px;">
             <h2 style="font-weight:900; margin-top:0;">🔴 回答者 ログイン</h2>
-            <label style="display:block; margin-bottom:8px; font-weight:bold; color:#444; text-align:left;">プレイヤー名：</label>
-            <input type="text" id="player-name" placeholder="名前を入力してください" value="プレイヤー">
+            <div style="margin-bottom: 20px;">
+                <label style="display:block; margin-bottom:8px; font-weight:bold; text-align:left;">プレイヤー名：</label>
+                <input type="text" id="player-name" placeholder="名前を入力してください" value="プレイヤー">
+            </div>
+            <button id="login-btn" onclick="submitLogin()" style="width:100%; padding:15px; background:#28a745; color:white; font-size:1.2rem; font-weight:bold; border:none; border-radius:10px; cursor:pointer;">部屋に入る 🚪</button>
+            <p id="wait-msg" style="color:#666; font-weight:bold; margin-top:20px; display:none;">MCがゲームを開始するまでお待ちください...</p>
         </div>
-        <button id="login-btn" onclick="submitLogin()" style="width:100%; padding:15px; background:#28a745; color:white; font-size:1.2rem; font-weight:bold; border:none; border-radius:10px; cursor:pointer;">部屋に入る 🚪</button>
-        <p id="wait-msg" style="color:#666; font-weight:bold; margin-top:20px; display:none;">MCがゲームを開始するまでお待ちください...</p>
     `;
 }
 
@@ -44,7 +47,6 @@ function submitLogin() {
 function triggerBuzzer() {
     if (!myConfirmedName) return;
     
-    // 【連打防止】
     const btn = document.getElementById('buzzer-btn');
     if (btn) {
         btn.disabled = true;
@@ -68,12 +70,10 @@ socket.on('updateState', (state) => {
         const myScore = (state.scores && state.scores[myConfirmedName] !== undefined) ? state.scores[myConfirmedName] : 0;
         const currentQuestionText = state.currentQuestion || "（出題をお待ちください）";
 
-        // 💡 現在のモードに合わせてPC画面と同じデザイン（ippon用の黄色、quiz用の白赤）に切り替えるクラス
-        const currentModeClass = (state.mode === 'ippon') ? 'pc-style-ippon' : 'pc-style-quiz';
+        // モードに合わせてPCの大画面用クラス（stage-card）をそのまま適用
+        const currentModeClass = (state.mode === 'ippon') ? 'stage-card ippon-mode' : 'stage-card quiz-mode';
 
         isMyTurn = (state.currentPresenter === myConfirmedName);
-
-        // 💡 自分の番ならランプを点灯させるクラスを付与
         const lampClass = isMyTurn ? "buzzer-lamp lamp-active" : "buzzer-lamp";
 
         let statusText = "待機中";
@@ -93,23 +93,23 @@ socket.on('updateState', (state) => {
             }
         }
 
-        // 💡 ご指示いただいた通りの純粋な縦並びUI（問題文表示欄をPCと同じデザインへ）
+        // 💡 ご指示の縦並びを、画面いっぱい（幅100%）に配置
         container.innerHTML = `
             <!-- ① ランプ -->
             <div class="${lampClass}"></div>
 
             <!-- ② プレイヤー名 -->
-            <div style="font-size:1.1rem; font-weight:bold; margin-bottom:15px; color:#1a1a1a;">プレイヤー: ${myConfirmedName}</div>
+            <div style="font-size:1.2rem; font-weight:bold; margin-bottom:15px;">${myConfirmedName}</div>
 
-            <!-- ③ 問題文表示欄（PC画面と全く同じ形状・多重額縁デザインをスマホサイズに再現） -->
-            <div id="mini-stage-card" class="${currentModeClass}">
-                <div class="mini-stage-text">${currentQuestionText}</div>
+            <!-- ③ 問題文表示欄：PC画面（stage-card）の見た目と完全に一致させた額縁 -->
+            <div class="${currentModeClass}">
+                <div class="stage-text">${currentQuestionText}</div>
             </div>
 
             <!-- ④ 下部操作エリア -->
-            <div>
+            <div style="max-width:400px; margin:0 auto;">
                 <div class="score-display">現在のスコア: <span id="my-score">${myScore}</span> pt</div>
-                <div style="font-size:1.1rem; font-weight:bold; margin-bottom:15px; color:#1a1a1a;">回答権の有無: ${statusText}</div>
+                <div style="font-size:1.1rem; font-weight:bold; margin-bottom:15px;">${statusText}</div>
                 <button id="buzzer-btn" onclick="triggerBuzzer()" ${btnDisabled ? 'disabled' : ''}>PUSH</button>
             </div>
         `;
@@ -117,20 +117,5 @@ socket.on('updateState', (state) => {
         hasLoggedIn = false;
         isMyTurn = false;
         renderLoginScreen();
-    }
-});
-
-socket.on('buzzerResult', (data) => {
-    if (data.isFastest) {
-        if (navigator.vibrate) { navigator.vibrate(); } 
-    } else {
-        if (navigator.vibrate) { navigator.vibrate(300); } 
-    }
-});
-
-socket.on('initDefaultName', (data) => {
-    const idInput = document.getElementById('player-name');
-    if (idInput && (idInput.value === "プレイヤー" || idInput.value === "")) {
-        idInput.value = data.defaultBuzzerName;
     }
 });
