@@ -44,7 +44,7 @@ function submitLogin() {
 function triggerBuzzer() {
     if (!myConfirmedName) return;
     
-    // 【連打・誤爆防止】タップされた瞬間に即無効化
+    // 【連打・誤爆防止】押した瞬間にボタンをグレーアウトして即ロック
     const btn = document.getElementById('buzzer-btn');
     if (btn) {
         btn.disabled = true;
@@ -68,85 +68,75 @@ socket.on('updateState', (state) => {
     if (state.phase === 'playing') {
         const myScore = (state.scores && state.scores[myConfirmedName] !== undefined) ? state.scores[myConfirmedName] : 0;
         
-        // MCからの問題文を取得
-        const currentQuestionText = state.currentQuestion || "次の問題をお待ちください...";
+        // サーバーから届く現在のお題テキスト（無ければ待機文字）
+        const currentQuestionText = state.currentQuestion || "（出題をお待ちください）";
 
-        // 💡 現在のゲームモード（ippon または quiz）を判定して、手元のミニPC画面の見た目を切り替える
-        const currentModeClass = (state.mode === 'ippon') ? 'mini-ippon-card' : 'mini-quiz-card';
-
-        // サーバー上の「現在の発言者」が自分自身であるかを【最優先】でチェック！
+        // 💡 1. サーバー上の「現在の発言者」が自分自身であるかを最優先でチェック
         isMyTurn = (state.currentPresenter === myConfirmedName);
 
-        // 💡 解答権獲得時のパトランプの点灯状態クラスを判定
-        // 自分が解答権を握っているなら「lamp-active」を付与
+        // 💡 自分の番ならランプをアクティブ（点灯）にする
         const lampClass = isMyTurn ? "buzzer-lamp lamp-active" : "buzzer-lamp";
 
-        // 💡 1. 自分が解答権を勝ち取ったときの特別全画面表示
-        if (isMyTurn) {
-            container.className = "buzzer-container my-turn-flash"; 
-            container.innerHTML = `
-                <!-- 📺 テレビ画面を100%模したミニチュアステージカード（上部に埋め込み） -->
-                <div class="mini-stage-framework ${currentModeClass}">
-                    <!-- 💡【追加】解答権ランプ（まばゆく点滅点灯） -->
-                    <div class="${lampClass}"></div>
-                    <div class="mini-stage-text">${currentQuestionText}</div>
-                </div>
-
-                <div class="score-display">現在のスコア: <span>${myScore}</span> pt</div>
-                <div class="turn-announcement">
-                    <div class="turn-emoji">👑</div>
-                    <h2>あなたの解答権です！</h2>
-                    <p class="turn-subtext">思いっきり回答してください！</p>
-                </div>
-            `;
-            return; // 通常判定（誰かが回答中など）をスキップ
-        }
-
-        // --- 💡 2. 以下は、自分「以外」のターン、または問題待機中の通常表示 ---
-        container.className = "buzzer-container"; 
-        
-        let statusText = "出題をお待ちください...";
+        // 💡 状態に応じた「回答権の有無」のテキストとボタンの見た目の設定
+        let statusText = "待機中";
         let btnDisabled = true;
         let btnClass = "btn-disabled"; 
-        let textColor = "#555555";
+        let statusColor = "#888888";
 
-        if (state.status === 'question') {
-            statusText = "📢 ボタンを押せます！";
-            btnDisabled = false;
-            btnClass = "btn-ready";
-            textColor = "#2e9e45";
-        } else if (state.status === 'answered' || state.status === 'voting') {
-            statusText = `🛑 ${state.currentPresenter || '誰か'}が回答中です`;
-            btnClass = "btn-locked";
-            textColor = "#ff3333";
-        } else if (state.status === 'correct') {
-            statusText = "🎉 正解発表中";
-            textColor = "#2e9e45";
+        if (isMyTurn) {
+            // 💡 解答権を獲得した瞬間
+            statusText = "👑 解答権獲得！";
+            statusColor = "#ffaa00"; // 華やかなゴールド
+            btnDisabled = true;      // 獲得済みのときはボタンは押せなくてOK
+            btnClass = "btn-disabled";
+        } else {
+            // 💡 それ以外の通常のゲームステータス判定
+            if (state.status === 'question') {
+                statusText = "📢 ボタンを押せます！";
+                btnDisabled = false;
+                btnClass = "btn-ready";
+                statusColor = "#2e9e45";
+            } else if (state.status === 'answered' || state.status === 'voting') {
+                statusText = `🛑 ${state.currentPresenter || '誰か'}が回答中です`;
+                btnClass = "btn-locked";
+                statusColor = "#ff3333";
+            } else if (state.status === 'correct') {
+                statusText = "🎉 正解発表中";
+                statusColor = "#2e9e45";
+            }
         }
 
+        // 💡【ご指定のUIレイアウト】上から順番に要素を綺麗に配置します
         container.innerHTML = `
-            <!-- 📺 テレビ画面を100%模したミニチュアステージカード（上部に埋め込み） -->
-            <div class="mini-stage-framework ${currentModeClass}">
-                <!-- 💡【追加】解答権ランプ（普段は消灯） -->
-                <div class="${lampClass}"></div>
-                <div class="mini-stage-text">${currentQuestionText}</div>
+            <!-- ① ランプ -->
+            <div class="${lampClass}"></div>
+
+            <!-- ② プレイヤー名 -->
+            <div class="player-name-display">👤 プレイヤー: <span>${myConfirmedName}</span></div>
+
+            <!-- ③ 問題文表示欄 -->
+            <div class="question-board">
+                <div class="question-board-title">Q. 問題・お題</div>
+                <div class="question-board-text">${currentQuestionText}</div>
             </div>
 
-            <div class="score-display">現在のスコア: <span id="my-score">${myScore}</span> pt</div>
-            <div id="buzzer-status" class="status-text" style="color: ${textColor};">${statusText}</div>
-            <button id="buzzer-btn" class="${btnClass}" onclick="triggerBuzzer()" ${btnDisabled ? 'disabled' : ''}>PUSH</button>
+            <!-- ④ 下部情報・操作エリア -->
+            <div class="control-area">
+                <div class="score-display">現在のスコア: <span>${myScore}</span> pt</div>
+                <div class="status-display" style="color: ${statusColor};">回答権の有無: <strong>${statusText}</strong></div>
+                <button id="buzzer-btn" class="${btnClass}" onclick="triggerBuzzer()" ${btnDisabled ? 'disabled' : ''}>PUSH</button>
+            </div>
         `;
     } else if (state.phase === 'setup') {
         hasLoggedIn = false;
         isMyTurn = false;
-        container.className = "buzzer-container";
         renderLoginScreen();
     }
 });
 
 socket.on('buzzerResult', (data) => {
     if (data.isFastest) {
-        if (navigator.vibrate) { navigator.vibrate([80, 50, 80]); } 
+        if (navigator.vibrate) { navigator.vibrate(); } 
     } else {
         if (navigator.vibrate) { navigator.vibrate(300); } 
     }

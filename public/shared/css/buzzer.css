@@ -3,8 +3,8 @@ body {
     font-family: system-ui, -apple-system, sans-serif;
     margin: 0;
     padding: 20px;
-    background-color: #f7f6f3;
-    color: #1a1a1a;
+    background-color: #1a1a1a; /* 高級感のあるクイズ番組のダーク背景 */
+    color: #ffffff;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -12,14 +12,14 @@ body {
 }
 
 .buzzer-container {
-    background: #ffffff;
-    padding: 30px 20px;
-    border-radius: 16px;
-    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
-    border: 1px solid #dcd6cd;
+    background: #2a2a2a;
+    padding: 25px 20px;
+    border-radius: 20px;
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
+    border: 2px solid #444;
     text-align: center;
     width: 100%;
-    max-width: 400px;
+    max-width: 420px;
     box-sizing: border-box;
 }
 
@@ -27,282 +27,139 @@ input[type="text"] {
     width: 100%;
     padding: 14px;
     font-size: 1.1rem;
-    border: 1px solid #dcd6cd;
+    border: 2px solid #555;
     border-radius: 10px;
     outline: none;
     box-sizing: border-box;
     text-align: center;
+    background-color: #1a1a1a;
+    color: #fff;
+}
+input[type="text"]:focus {
+    border-color: #ff3333;
+}
+
+/* 🚨 ① ランプ設定 */
+.buzzer-lamp {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 30% 30%, #555555, #222222); /* 普段は消灯（グレー） */
+    border: 3px solid #111111;
+    margin: 0 auto 15px auto;
+    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
+    transition: all 0.1s ease;
+}
+/* 👑 解答権獲得時の点灯エフェクト（赤色にパッと発光） */
+.buzzer-lamp.lamp-active {
+    background: radial-gradient(circle at 30% 30%, #ff5555, #cc0000);
+    border-color: #ffffff;
+    box-shadow: 0 0 20px #ff3333, 0 0 40px #ff3333;
+}
+
+/* 👤 ② プレイヤー名表示 */
+.player-name-display {
+    font-size: 1.1rem;
+    font-weight: bold;
+    color: #cccccc;
+    margin-bottom: 15px;
+}
+.player-name-display span {
+    color: #ffffff;
+    text-decoration: underline #555;
+}
+
+/* 📺 ③ 問題文表示欄 */
+.question-board {
+    background: #111111;
+    border: 2px solid #444;
+    border-radius: 10px;
+    padding: 12px 10px;
+    margin-bottom: 20px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
+}
+.question-board-title {
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #ffaa00;
+    margin-bottom: 6px;
+    letter-spacing: 0.05em;
+}
+.question-board-text {
+    font-size: 1.2rem;
+    font-weight: 900;
+    color: #ffffff;
+    line-height: 1.4;
+    word-break: break-all;
+}
+
+/* ⚙️ ④ 下部情報・操作エリア */
+.control-area {
+    background: rgba(0, 0, 0, 0.2);
+    padding: 15px;
+    border-radius: 12px;
+    border: 1px solid #3a3a3a;
 }
 
 .score-display {
-    font-size: 1.2rem;
-    font-weight: bold;
-    margin: 15px 0;
-    color: #555;
-}
-
-.status-text {
     font-size: 1.1rem;
     font-weight: bold;
-    margin: 20px 0;
-    color: #ff3333;
+    color: #ddd;
+    margin-bottom: 8px;
+}
+.score-display span {
+    font-size: 1.3rem;
+    color: #ffcc00;
+}
+
+.status-display {
+    font-size: 1.05rem;
+    font-weight: bold;
+    margin-bottom: 18px;
 }
 
 /* 🟥 巨大早押し丸ボタン */
 #buzzer-btn {
-    background-color: #ff3333;
-    color: white;
-    font-size: 2.5rem;
+    font-size: 2.2rem;
     font-weight: 900;
     border: none;
     border-radius: 50%;
-    width: 200px;
-    height: 200px;
-    margin: 20px auto;
+    width: 160px;
+    height: 160px;
+    margin: 10px auto 0 auto;
     display: flex;
     justify-content: center;
     align-items: center;
-    box-shadow: 0 10px 25px rgba(255, 51, 51, 0.4);
     cursor: pointer;
-    transition: transform 0.1s ease, background-color 0.2s ease, opacity 0.2s ease;
+    transition: all 0.1s ease;
 }
 
-#buzzer-btn:active {
-    background-color: #e02828;
-    transform: scale(0.92);
-    box-shadow: 0 4px 10px rgba(255, 51, 51, 0.2);
+/* 🟢 ボタンが押せる状態（分厚い3D座布団つき） */
+#buzzer-btn.btn-ready {
+    background: radial-gradient(circle at 30% 30%, #ff5555, #cc0000);
+    color: white;
+    box-shadow: 0 10px 0 #880000, 0 12px 20px rgba(255, 51, 51, 0.4);
+}
+#buzzer-btn.btn-ready:active {
+    transform: translateY(8px);
+    box-shadow: 0 2px 0 #880000, 0 4px 8px rgba(255, 51, 51, 0.3);
 }
 
-/* ロックがかかったときのボタンスタイル */
-#buzzer-btn:disabled {
-    background-color: #aaaaaa !important;
-    box-shadow: none !important;
-    opacity: 0.6;
+/* 🛑 他の人が回答中でロックがかかっている状態 */
+#buzzer-btn.btn-locked {
+    background: #4a1515 !important;
+    color: #885555 !important;
+    box-shadow: 0 4px 0 #2a0000 !important;
+    transform: translateY(6px);
+    opacity: 0.7;
     cursor: not-allowed;
 }
 
-/* --- 以下のCSSコードを buzzer.css の末尾に追記してください --- */
-
-/* 👑 自分が解答権を勝ち取ったときのスペシャル全画面演出 */
-.buzzer-container.my-turn-flash {
-    background: linear-gradient(135deg, #111 0%, #2c2200 100%);
-    border: 3px solid #ffd400; /* おめでたいゴールド枠 */
-    animation: borderGlow 1s infinite alternate; /* 枠線をじんわり光らせる */
-}
-
-/* 解答権獲得時の文字とデザイン */
-.turn-announcement {
-    margin-top: 30px;
-    padding: 20px;
-    background: rgba(255, 212, 0, 0.1);
-    border-radius: 12px;
-    border: 1px dashed #ffd400;
-}
-
-.turn-announcement h2 {
-    color: #ffd400;
-    font-size: 1.8rem;
-    font-weight: 900;
-    margin: 10px 0;
-    text-shadow: 0 0 10px rgba(255, 212, 0, 0.4);
-}
-
-.turn-emoji {
-    font-size: 4rem;
-    animation: bounce 0.6s infinite alternate; /* 王冠をピョコピョコ跳ねさせる */
-}
-
-.turn-subtext {
-    color: #ffffff;
-    font-size: 1.1rem;
-    font-weight: bold;
-}
-
-/* アニメーション：王冠のバウンド */
-@keyframes bounce {
-    from { transform: translateY(0); }
-    to { transform: translateY(-15px); }
-}
-
-/* アニメーション：ゴールド枠の輝き */
-@keyframes borderGlow {
-    from { box-shadow: 0 0 15px rgba(255, 212, 0, 0.3); }
-    to { box-shadow: 0 0 30px rgba(255, 212, 0, 0.8); }
-}
-
-/* --- 以下のCSSコードを buzzer.css の末尾に追記してください --- */
-
-/* 📺 スマホ上部に埋め込むPC風の問題掲示板 */
-.question-display {
-    background: #111111; /* 締まった黒 */
-    border: 2px solid #444444;
-    border-radius: 12px;
-    padding: 15px 10px;
-    margin-bottom: 20px;
-    text-align: center;
-    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8), 0 4px 10px rgba(0,0,0,0.3);
-}
-
-/* 「Q. 現在の問題」というミニタグ */
-.question-tag {
-    font-size: 0.75rem;
-    font-weight: bold;
-    color: #ffaa00; /* クイズ番組らしいオレンジ・ゴールド */
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    margin-bottom: 8px;
-}
-
-/* 表示される問題文・お題のテキスト */
-.question-text {
-    font-size: 1.25rem;
-    font-weight: 900;
-    color: #ffffff;
-    line-height: 1.5;
-    word-break: break-all;
-    /* 文字が長くなった時も崩れにくくするためのマージン */
-    padding: 0 5px;
-}
-
-/* 自分の番のときは問題掲示板の枠もちょっとゴージャスに */
-.my-turn-flash .question-display {
-    border-color: #ffd400;
-}
-
-/* --- 以下のCSSコードを buzzer.css の末尾にすべて追記（または前回の追加分と差し替え）してください --- */
-
-/* 📺 PC大画面のデザインをそのまま再現したミニ額縁フレームの土台 */
-.mini-stage-framework {
-    position: relative;
-    width: 100%;
-    min-height: 140px;
-    margin-bottom: 25px;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    text-align: center;
-    box-sizing: border-box;
-    padding: 25px 20px 15px 20px;
-
-    /* PC大画面と全く同じ、四隅を美しく削いだ本家風の6角形フレーム形状 */
-    clip-path: polygon(30px 0%, calc(100% - 30px) 0%,
-            100% 30px, 100% calc(100% - 30px),
-            calc(100% - 30px) 100%, 30px 100%,
-            0% calc(100% - 30px), 0% 30px);
-}
-
-/* 🟨 大喜利（IPPON）モード時のゴールド多重額縁（ミニサイズ版） */
-.mini-stage-framework.mini-ippon-card {
-    background-color: #ffcc00;
-    color: #000000;
-    box-shadow:
-        inset 0 0 0 3px #000000,
-        inset 0 0 0 6px #fff2a3,
-        inset 0 0 0 11px #000000,
-        inset 0 0 0 14px #ffcc00,
-        inset 0 0 0 19px #000000;
-}
-
-/* 🟥 クイズモード時のホワイト＆レッド多重額縁（ミニサイズ版） */
-.mini-stage-framework.mini-quiz-card {
-    background-color: #ffffff;
-    color: #000000;
-    box-shadow:
-        inset 0 0 0 3px #ff3333,
-        inset 0 0 0 6px #ffcccc,
-        inset 0 0 0 11px #000000,
-        inset 0 0 0 14px #ff3333,
-        inset 0 0 0 19px #000000;
-}
-
-/* 📝 フレーム内のお題・問題文テキスト */
-.mini-stage-text {
-    font-size: 1.15rem;
-    font-weight: 900;
-    line-height: 1.4;
-    color: #000000;
-    word-break: break-all;
-    padding: 0 10px;
-    z-index: 2;
-}
-
-/* 🚨 【新設】解答権パトランプ本体（フレームの上部中央にフローティング配置） */
-.buzzer-lamp {
-    position: absolute;
-    top: 5px;
-    left: 50%;
-    transform: translateX(-50%);
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 35% 35%, #555, #222); /* 普段は完全に消灯したグレー球 */
-    border: 2px solid #000000;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
-    z-index: 10;
-    transition: all 0.2s ease;
-}
-
-/* 👑 【解答権獲得！】ランプが限界突破して大光彩を放ち超高速フラッシュする状態 */
-.buzzer-lamp.lamp-active {
-    background: radial-gradient(circle at 35% 35%, #ffffff, #ff1a1a); /* 鮮烈な白熱コアと赤クリアカバー */
-    border-color: #ffffff;
-    animation: lampFlashEffect 0.25s infinite alternate; /* 超高速パチパチ点滅 */
-}
-
-/* ランキング1位席さながらの激しい閃光アニメーション */
-@keyframes lampFlashEffect {
-    from {
-        box-shadow: 
-            0 0 8px #ff3333,
-            0 0 20px #ff3333,
-            0 0 40px #fff;
-        transform: translateX(-50%) scale(1.0);
-    }
-    to {
-        box-shadow: 
-            0 0 20px #ff3333,
-            0 0 45px #ffaa00,
-            0 0 75px #ffffff;
-        transform: translateX(-50%) scale(1.2); /* 輝きで一回り巨大化して見える演出 */
-        background: radial-gradient(circle at 35% 35%, #ffffff, #ff8800); /* 閃光時はオレンジゴールドにスパーク */
-    }
-}
-
-/* 自分の番のときの特別仕様コンテナ（外枠がじんわりゴールドに波打つ） */
-.buzzer-container.my-turn-flash {
-    background: linear-gradient(135deg, #111 0%, #2c2200 100%);
-    border: 3px solid #ffd400;
-    animation: borderGlow 1s infinite alternate;
-}
-@keyframes borderGlow {
-    from { box-shadow: 0 0 15px rgba(255, 212, 0, 0.3); }
-    to { box-shadow: 0 0 30px rgba(255, 212, 0, 0.8); }
-}
-
-.turn-announcement {
-    margin-top: 20px;
-    padding: 15px;
-    background: rgba(255, 212, 0, 0.1);
-    border-radius: 12px;
-    border: 1px dashed #ffd400;
-}
-.turn-announcement h2 {
-    color: #ffd400;
-    font-size: 1.6rem;
-    font-weight: 900;
-    margin: 8px 0;
-    text-shadow: 0 0 10px rgba(255, 212, 0, 0.4);
-}
-.turn-emoji {
-    font-size: 3rem;
-    animation: bounce 0.6s infinite alternate;
-}
-.turn-subtext {
-    color: #ffffff;
-    font-size: 1rem;
-    font-weight: bold;
-}
-@keyframes bounce {
-    from { transform: translateY(0); }
-    to { transform: translateY(-12px); }
+/* ⚪ 待機状態・無効状態 */
+#buzzer-btn.btn-disabled {
+    background: #444444 !important;
+    color: #777777 !important;
+    box-shadow: 0 4px 0 #222222 !important;
+    transform: translateY(6px);
+    cursor: not-allowed;
 }
