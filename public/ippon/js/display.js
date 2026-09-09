@@ -30,14 +30,19 @@ function updateIpponCardFramework(votes, currentVotersCount = 5) {
   // 1. 現在の「合計得点（票数）」を累積
   const totalVotes = Object.values(votes || {}).reduce((a, b) => a + b, 0);
   
-  // 【変数：満票 ＝ 投票者 * 2】の計算
+  // 【満票 ＝ 投票者 * 2】の計算
   const maxPossiblePoints = currentVotersCount * 2;
 
   // 🔥【満票（IPPON）に達した瞬間の演出】
   if (totalVotes >= maxPossiblePoints && maxPossiblePoints > 0) {
-      // 満票時は一面をゴールドに埋め尽くす（元の美しい演出を100%そのまま維持）
+      // 満票時は完全に画面を黄金で埋め尽くす（元々の素晴らしい演出を100%そのまま維持）
       card.style.boxShadow = "inset 0 0 0 14px #000000, inset 0 0 0 24px #fff2a3, inset 0 0 0 38px #000000, inset 0 0 0 48px #ffcc00, inset 0 0 0 62px #000000" +
                              ", inset 0 0 0 300vw #ffcc00, inset 0 0 0 300vh #ffcc00";
+      
+      // 満票時は生成した動的六角形枠をクリア
+      const oldWrapper = card.querySelector('.ippon-3d-hexagon-wrapper');
+      if (oldWrapper) oldWrapper.remove();
+
       if (effect) {
           effect.innerHTML = '<div class="ippon-gold-box">IPPON</div>';
       }
@@ -46,48 +51,53 @@ function updateIpponCardFramework(votes, currentVotersCount = 5) {
       if (effect) effect.innerHTML = "";
   }
 
-  // 2. 💡【人数連動仕様の太さ計算】
-  // クイズモードの画像と全く同じ美しい六角形の中央に、本家のような縞模様を収めるための1マスの太さ
-  const stepWidth = maxPossiblePoints > 0 ? (320 / maxPossiblePoints) : 25; 
-  
-  // 3. 💡【CSS変数への数字代入】
-  card.style.setProperty('--current-votes', totalVotes);
-  card.style.setProperty('--step-width', `${stepWidth}px`);
-  card.style.setProperty('--gold-thickness', `${stepWidth * 0.55}px`); // 肉厚な黄色枠の幅
-  card.style.setProperty('--black-gap', `${stepWidth * 0.35}px`);      // 凹凸を際立たせる深い黒い溝の幅
-  card.style.setProperty('--light-line', `${stepWidth * 0.1}px`);      // キラッと光る白熱ラインの幅
+  // 💡【重要固定】画像の一番外側に写っている、美しい元々の固定ベース額縁（62px分）をそのまま100%死守
+  card.style.boxShadow = "inset 0 0 0 14px #000000, inset 0 0 0 24px #fff2a3, inset 0 0 0 38px #000000, inset 0 0 0 48px #ffcc00, inset 0 0 0 62px #000000";
+  card.style.clipPath = "polygon(120px 0%, calc(100% - 120px) 0%, 100% 120px, 100% calc(100% - 120px), calc(100% - 120px) 100%, 120px 100%, 0% calc(100% - 120px), 0% 120px)";
 
-  // 4. 💡【修正完了：元々あった美しいベース額縁（62px分）をそのまま固定】
-  // 変な上書き（clipPathなど）はすべて消去し、元々の完璧な六角形フレームの値をそのまま活かします。
-  let shadowString = "inset 0 0 0 14px #000000, inset 0 0 0 24px #fff2a3, inset 0 0 0 38px #000000, inset 0 0 0 48px #ffcc00, inset 0 0 0 62px #000000";
-  
-  // 💡【正しい重ね順：全て足し算による3Dデコボコ数式】
-  // insetシャドウは「数値が大きいものほど上層を覆い尽くす」というブラウザの絶対ルールに合わせ、
-  // 62pxのフチから内側に向かって【①黄色 ➡️ ②立体段差影 ➡️ ③白熱ライン ➡️ ④深い黒い溝 ➡️ ⑤未開拓の黒（最大値）】
-  // の順番で上からパキッと重なり合うように、正しい足し算のみで組み立て直しました。
-  if (totalVotes > 0) {
-      shadowString += 
-          /* 🟨 ① 増える黄色枠ブロックのベース壁 */
-          ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width)) - var(--black-gap) - var(--light-line) - var(--gold-thickness)) #ffcc00" +
+  // 2. 💡【今回のコア：人数連動のリアル多重六角形パーツを1回だけ完璧に敷き詰める】
+  // 画面の裏側で、ボタンが押されるたびに影を増やすのをやめ、人数に応じた本数の六角形の「型」を最初から真ん中まで綺麗に作っておきます。
+  let hexWrapper = card.querySelector('.ippon-3d-hexagon-wrapper');
+  if (!hexWrapper) {
+      const oldWrappers = card.querySelectorAll('.ippon-3d-hexagon-wrapper');
+      oldWrappers.forEach(el => el.remove());
+
+      hexWrapper = document.createElement('div');
+      hexWrapper.className = 'ippon-3d-hexagon-wrapper';
+      card.appendChild(hexWrapper);
+
+      // 中央の残された黒い空間（62px内側）を最大満票数で寸分の狂いもなく均等にパーセンテージ（％）分割
+      // これによって3人（6枠）でも5人（10枠）でも、画像の通りの均等なシマ模様が自動で出来上がります
+      const stepPercent = maxPossiblePoints > 0 ? (42 / maxPossiblePoints) : 4;
+
+      for (let i = 0; i < maxPossiblePoints; i++) {
+          const hexLine = document.createElement('div');
+          hexLine.className = `ippon-real-hex-ring hex-ring-index-${i}`;
           
-          /* 👤 ② 黄色の壁のフチに乗せる、ドス黒い「立体的な段差影」（これで見本画像のようなデコボコになります） */
-          ", inset 0 0 8px calc(62px + (var(--current-votes) * var(--step-width)) - var(--black-gap) - var(--light-line) - var(--gold-thickness)) rgba(0,0,0,0.8)" +
+          // 外側から同じ角度のまま、完璧な等間隔で縮小して重ねていく絶対座標の指定
+          const insetDistance = (i * stepPercent);
+          hexLine.style.top = `${insetDistance}%`;
+          hexLine.style.bottom = `${insetDistance}%`;
+          hexLine.style.left = `${insetDistance}%`;
+          hexLine.style.right = `${insetDistance}%`;
           
-          /* 🌟 ③ 黄色枠の表面のキワで綺麗に反射して光る、白熱ハイライトライン */
-          ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width)) - var(--black-gap) - var(--light-line)) #fff2a3" +
-          
-          /* ⬛ ④ 本家最大の特徴：次の黄色枠との間にポッカリと口を開ける「完全に真っ黑な深い溝」 */
-          ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width)) - var(--black-gap)) #000000" +
-          
-          /* 👤 ⑤ その溝の底にさらに「深い沈み込み影」を落として高低差を表現 */
-          ", inset 0 0 12px calc(62px + (var(--current-votes) * var(--step-width)) - var(--black-gap)) rgba(0,0,0,0.95)" +
-          
-          /* ⬛ ⑥ 最後に、中央のまだ票が入っていない真っ黒な未開拓エリア（締めくくりの黒い壁） */
-          ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width))) #000000";
+          hexWrapper.appendChild(hexLine);
+      }
   }
-  
-  // 最終適用
-  card.style.boxShadow = shadowString;
+
+  // 3. 💡【核心：1票＝1枠だけをパシッと点灯（active）させるロジック】
+  // 重い文字列の再計算を完全にゼロにし、現在の合計票数（totalVotes）の数に合わせて、
+  // 外側の六角形リングから順番に「点灯クラス（active）」を付与するだけにします。
+  for (let i = 0; i < maxPossiblePoints; i++) {
+      const targetRing = card.querySelector(`.hex-ring-index-${i}`);
+      if (targetRing) {
+          if (i < totalVotes) {
+              targetRing.classList.add('active'); // 💡 票が入った場所：本家画像と同じ「鮮やかな極太黄色＆デコボコ」に変身！
+          } else {
+              targetRing.classList.remove('active'); // 💡 まだ票が入っていない場所：お送りいただいた画像のような「消灯状態の深い立体溝」として待機
+          }
+      }
+  }
 }
 
 socket.on('responseIpponQR', (data) => {

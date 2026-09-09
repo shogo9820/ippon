@@ -347,10 +347,82 @@ body {
 /* --- ippon.css の一番下に以下のCSS変数の定義のみを追記してください --- */
 
 #ippon-stage-card {
-  /* 💡 初期値として変数（動的に動かす数字）の受け皿を作っておきます */
   --current-votes: 0;   /* 現在の合計票数（JSから数字だけが届きます） */
   --step-width: 32px;   /* 人数から自動逆算された1マスの正確な太さ */
   
-  --gold-thickness: 12px; /* 1マスのうち、黄色の壁の厚み比率 */
-  --line-gap: 6px;       /* 1マスのうち、境界線となる黒い隙間の幅 */
+  --gold-thickness: 16px; /* 1マスのうち、黄色リングの厚み */
+  --light-line: 3px;     /* 1マスのうち、白熱ハイライトラインの厚み */
+  --black-gap: 10px;     /* 1マスのうち、深い黒い溝の幅 */
+}
+
+/* --- ippon.css の一番下に以下をそのまま上書き・追記してください --- */
+
+/* ⬡ 多重六角形リングを敷き詰めるベースエリア（ベース額縁 62px の内側にぴったり配置） */
+.ippon-3d-hexagon-wrapper {
+    position: absolute;
+    top: 62px;
+    bottom: 62px;
+    left: 62px;
+    right: 62px;
+    box-sizing: border-box;
+    z-index: 1;
+    background: #000000; /* 中央の突き抜ける黒 */
+}
+
+/* ⬡ 敷き詰められた本物の多重六角形リングの構造（通常時：消灯状態のデコボコ） */
+.ippon-real-hex-ring {
+    position: absolute;
+    box-sizing: border-box;
+    background: transparent;
+    
+    /* 💡【完全再現】クイズモードの画像と全く同じ、四隅を美しく削いだ完璧な横長六角形のクリップパス */
+    clip-path: polygon(60px 0%, calc(100% - 60px) 0%, 100% 60px, 100% calc(100% - 60px), calc(100% - 60px) 100%, 60px 100%, 0% calc(100% - 60px), 0% 60px);
+    
+    /* 💡【重要：消灯時の立体フチ】まだ票が入っていない時でも、画像のように凹凸の溝が見えるように、
+       少し暗めのダークゴールドと深い黒い影で、最初からすべてのマスに段差をつけておきます */
+    border: 15px solid #8f7200; 
+    box-shadow: 
+        inset 0 0 0 2px #554400,
+        inset 0 0 10px rgba(0,0,0,0.85),
+        0 6px 14px rgba(0,0,0,0.95);
+    
+    /* 票が入って点灯する時の、パチッとキレのある変身アニメーション */
+    transition: all 0.08s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+/* 🔥【審査員がタップして1票入った瞬間：本家の理想画像状態へ完全覚醒！】 */
+.ippon-real-hex-ring.active {
+    /* 🟨 本家画像通りの鮮やかで肉厚なゴールドリングへと変身 */
+    border-color: #ffcc00 !important;
+    
+    /* 🌟 キワで美しく反射して光る、白熱のハイライトラインと崖のような深い陰影を完全固定 */
+    box-shadow: 
+        inset 0 0 0 3px #fff2a3, 
+        inset 0 0 12px rgba(0,0,0,0.75), 
+        0 6px 16px rgba(0,0,0,0.95);
+        
+    /* 押された瞬間に一瞬だけピカッ！と真っ白に眩しく発光する本家風のフラッシュ演出 */
+    animation: hexHitFlash 0.12s ease-out;
+}
+
+/* 枠が入った瞬間の力強いインパクト（閃光バースト） */
+@keyframes hexHitFlash {
+    0% {
+        border-color: #ffffff !important;
+        box-shadow: inset 0 0 0 5px #ffffff, 0 0 20px #ffffff;
+    }
+    100% {
+        border-color: #ffcc00 !important;
+    }
+}
+
+/* 一番内側の最後の1マス（お題テキストが表示される中央の長方形部分） */
+.ippon-real-hex-ring:not(:has(.ippon-real-hex-ring)) {
+    background: #000000; /* 満票になるまでは真ん中が真っ黒に突き抜ける（画像の状態） */
+}
+
+/* お題の文字や回答者名が枠の裏に隠れないように最前面へ引き上げる */
+.stage-text, .presenter-text {
+    position: relative;
+    z-index: 10 !important;
 }
