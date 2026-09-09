@@ -35,7 +35,7 @@ function updateIpponCardFramework(votes, currentVotersCount = 5) {
 
   // 🔥【満票（IPPON）に達した瞬間の演出】
   if (totalVotes >= maxPossiblePoints && maxPossiblePoints > 0) {
-      // 満票時は一面をゴールドに埋め尽くす（元々の素晴らしい演出を100%そのまま維持）
+      // 満票時は一面をゴールドに埋め尽くす（元の美しい演出を100%そのまま維持）
       card.style.boxShadow = "inset 0 0 0 14px #000000, inset 0 0 0 24px #fff2a3, inset 0 0 0 38px #000000, inset 0 0 0 48px #ffcc00, inset 0 0 0 62px #000000" +
                              ", inset 0 0 0 300vw #ffcc00, inset 0 0 0 300vh #ffcc00";
       if (effect) {
@@ -47,25 +47,45 @@ function updateIpponCardFramework(votes, currentVotersCount = 5) {
   }
 
   // 2. 💡【人数連動仕様の太さ計算】
-  // 人数に応じて、中央の空間がぴったり埋まる1マスの太さを計算
-  const stepWidth = maxPossiblePoints > 0 ? (320 / maxPossiblePoints) : 25; 
+  // 本家のような「黄色リングと黒い溝のシマ模様」を画面いっぱいに綺麗に収めるための1マスの太さ
+  const stepWidth = maxPossiblePoints > 0 ? (340 / maxPossiblePoints) : 25; 
   
   // 3. 💡【CSS変数への数字代入】
   card.style.setProperty('--current-votes', totalVotes);
   card.style.setProperty('--step-width', `${stepWidth}px`);
-  card.style.setProperty('--gold-thickness', `${stepWidth * 0.5}px`); // 黄色い線の幅（1マスの約半分）
-  card.style.setProperty('--line-gap', `${stepWidth * 0.15}px`);      // 白熱ラインの幅
+  card.style.setProperty('--gold-thickness', `${stepWidth * 0.55}px`); // 肉厚な黄色枠の幅
+  card.style.setProperty('--black-gap', `${stepWidth * 0.35}px`);      // デコボコを際立たせる深い黒い溝の幅
+  card.style.setProperty('--light-line', `${stepWidth * 0.1}px`);      // キラッと光る白熱ラインの幅
 
-  // 4. 💡【修正完了：パキッと見える正しい重ね順の足し算式】
-  // 画像に写っている「元々の美しいベース額縁デザイン（62px分）」を100%維持します。
+  // 4. 💡【形状の完全復元：本家と1:1で一致する「極太多重リング」の折り重なり】
+  // 壊してしまっていた外側の形状を、四隅が120pxで大胆に斜めカットされた「あの美しい横長六角形」へ完全に復元・固定します！
+  card.style.clipPath = "polygon(120px 0%, calc(100% - 120px) 0%, 100% 120px, 100% calc(100% - 120px), calc(100% - 120px) 100%, 120px 100%, 0% calc(100% - 120px), 0% 120px)";
+
+  // 元々の美しく重厚なベース額縁デザイン（62px分）
   let shadowString = "inset 0 0 0 14px #000000, inset 0 0 0 24px #fff2a3, inset 0 0 0 38px #000000, inset 0 0 0 48px #ffcc00, inset 0 0 0 62px #000000";
   
-  // 💡 カウントが1票以上ある時、ベースの62pxから「内側（pxが大きい方）」へ向かって、
-  // 【黄色 ➡️ 白熱ライン ➡️ 次のマスとの境界線の黒】の順番で正しく重なるように足し算で組み立て直しました。
+  // 💡 1票入るごとに、復元された美しい六角形の角度を保ったまま、
+  // 【黄色 ➡️ ハイライト ➡️ 深い真っ黒な溝】が多重リングとして綺麗に繰り返され、
+  // 奥にいくほど深い立体段差の影（rgba）が落ちる本家特有の数式に結合しました。
   if (totalVotes > 0) {
-      shadowString += ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width)) - var(--line-gap) - var(--gold-thickness)) #ffcc00" +
-                      ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width)) - var(--line-gap)) #fff2a3" +
-                      ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width))) #000000";
+      shadowString += 
+          /* 🟨 A. 増える黄色枠ブロックのベース壁（ベースフチ62pxからスタート） */
+          ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width)) - var(--black-gap) - var(--light-line) - var(--gold-thickness)) #ffcc00" +
+          
+          /* 👤 B. 黄色の壁の上に、本家画像のようなドス黒い「立体的な段差影」を乗せてガタガタ感を出す */
+          ", inset 0 0 8px calc(62px + (var(--current-votes) * var(--step-width)) - var(--black-gap) - var(--light-line) - var(--gold-thickness)) rgba(0,0,0,0.75)" +
+          
+          /* 🌟 C. 黄色枠の表面のキワで綺麗に反射して光る、白熱ハイライトライン */
+          ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width)) - var(--black-gap) - var(--light-line)) #fff2a3" +
+          
+          /* ⬛ D. 本家最大の特徴：次の黄色枠との間にポッカリと口を開ける「完全に真っ黒な深い溝（隙間）」 */
+          ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width)) - var(--black-gap)) #000000" +
+          
+          /* 👤 E. その溝の底にさらに「深い沈み込み影」を落として、崖のような高低差を表現する */
+          ", inset 0 0 12px calc(62px + (var(--current-votes) * var(--step-width)) - var(--black-gap)) rgba(0,0,0,0.95)" +
+          
+          /* ⬛ F. 最後に、中央のまだ票が入っていない真っ黒な未開拓エリア（締めくくりの黒い壁） */
+          ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width))) #000000";
   }
   
   // 最終適用
