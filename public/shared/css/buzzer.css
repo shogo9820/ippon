@@ -129,3 +129,42 @@ input[type="text"] {
     from { box-shadow: 0 0 15px rgba(255, 212, 0, 0.3); }
     to { box-shadow: 0 0 30px rgba(255, 212, 0, 0.8); }
 }
+
+/* --- 以下のCSSコードを buzzer.css の末尾に追記してください --- */
+
+/* 📺 スマホ上部に埋め込むPC風の問題掲示板 */
+.question-display {
+    background: #111111; /* 締まった黒 */
+    border: 2px solid #444444;
+    border-radius: 12px;
+    padding: 15px 10px;
+    margin-bottom: 20px;
+    text-align: center;
+    box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.8), 0 4px 10px rgba(0,0,0,0.3);
+}
+
+/* 「Q. 現在の問題」というミニタグ */
+.question-tag {
+    font-size: 0.75rem;
+    font-weight: bold;
+    color: #ffaa00; /* クイズ番組らしいオレンジ・ゴールド */
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 8px;
+}
+
+/* 表示される問題文・お題のテキスト */
+.question-text {
+    font-size: 1.25rem;
+    font-weight: 900;
+    color: #ffffff;
+    line-height: 1.5;
+    word-break: break-all;
+    /* 文字が長くなった時も崩れにくくするためのマージン */
+    padding: 0 5px;
+}
+
+/* 自分の番のときは問題掲示板の枠もちょっとゴージャスに */
+.my-turn-flash .question-display {
+    border-color: #ffd400;
+}
