@@ -412,3 +412,14 @@ body {
 .stage-text, .presenter-text {
     z-index: 5 !important;
 }
+
+/* --- ippon.css の一番下に以下のCSS変数の定義のみを追記してください --- */
+
+#ippon-stage-card {
+  /* 💡 初期値として変数（動的に動かす数字）の受け皿を作っておきます */
+  --current-votes: 0;   /* 現在の合計票数（JSから数字だけが届きます） */
+  --step-width: 32px;   /* 人数から自動逆算された1マスの正確な太さ */
+  
+  --gold-thickness: 12px; /* 1マスのうち、黄色の壁の厚み比率 */
+  --line-gap: 6px;       /* 1マスのうち、境界線となる黒い隙間の幅 */
+}

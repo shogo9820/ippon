@@ -20,7 +20,7 @@ function typeWriter(text, elementId, speed = 80) {
   }, speed);
 }
 
-// --- public/ippon/js/display.js の updateIpponCardFramework を以下に差し替えてください ---
+// --- public/ippon/js/display.js の updateIpponCardFramework を以下に丸ごと差し替えてください ---
 
 function updateIpponCardFramework(votes, currentVotersCount = 5) {
   const card = document.getElementById("ippon-stage-card");
@@ -33,9 +33,9 @@ function updateIpponCardFramework(votes, currentVotersCount = 5) {
   // 【変数：満票 ＝ 投票者 * 2】の計算
   const maxPossiblePoints = currentVotersCount * 2;
 
-  // 🔥【満票（IPPON）に達した瞬間】
+  // 🔥【満票（IPPON）に達した瞬間の演出】
   if (totalVotes >= maxPossiblePoints && maxPossiblePoints > 0) {
-      // 満票時は一面をゴールドに埋め尽くす（元の美しい演出をそのまま維持）
+      // 満票時は一面をゴールドに埋め尽くす（元々の素晴らしい演出を100%そのまま維持）
       card.style.boxShadow = "inset 0 0 0 14px #000000, inset 0 0 0 24px #fff2a3, inset 0 0 0 38px #000000, inset 0 0 0 48px #ffcc00, inset 0 0 0 62px #000000" +
                              ", inset 0 0 0 300vw #ffcc00, inset 0 0 0 300vh #ffcc00";
       if (effect) {
@@ -46,30 +46,31 @@ function updateIpponCardFramework(votes, currentVotersCount = 5) {
       if (effect) effect.innerHTML = "";
   }
 
-  // 💡【重要復元】元の美しく重厚な黒と黄色のベース額縁デザインを100%完全に固定（画像の外側のギザギザとも完全に調和します）
+  // 2. 💡【人数連動仕様の完全固定化】
+  // 人数（最大満票数）に応じて、中央の空間がぴったり埋まる1マスの太さを1回だけ計算
+  const stepWidth = maxPossiblePoints > 0 ? (320 / maxPossiblePoints) : 25; 
+  
+  // 3. 💡【今回の肝：CSS変数への一発代入】
+  // JavaScriptから重い影の文字データを送るのを完全にやめ、「数字」だけをパチッとCSSへ代入します
+  card.style.setProperty('--current-votes', totalVotes);
+  card.style.setProperty('--step-width', `${stepWidth}px`);
+  card.style.setProperty('--gold-thickness', `${stepWidth * 0.45}px`); // 太さに合わせて自動スケール
+  card.style.setProperty('--line-gap', `${stepWidth * 0.2}px`);
+
+  // 4. 💡【ブラウザ側でパキッと描画させる計算式】
+  // 画像に写っている「元々の美しいベース額縁デザイン（62px分）」を完全に固定したまま、
+  // JavaScriptのforループを完全に廃止し、CSSの内部計算（calc）に1本のシャドウだけで綺麗に伸びる命令を通します。
+  
   let shadowString = "inset 0 0 0 14px #000000, inset 0 0 0 24px #fff2a3, inset 0 0 0 38px #000000, inset 0 0 0 48px #ffcc00, inset 0 0 0 62px #000000";
   
-  // 💡【人数連動仕様の完全復元】
-  // ログイン中の人数（満票数）に応じて、中央の空間がぴったり埋まる最適な1枠の「太さ」を自動で割り出します。
-  // 中央の残された幅（約300px〜380px）を最大満票数で均等に割ることで、5人（10枠）でも6人（12枠）でも、画面が崩れずぴったり収まります。
-  const stepWidth = maxPossiblePoints > 0 ? Math.floor(320 / maxPossiblePoints) : 25; 
-  
-  // 1枠の太さに合わせて、黄色の太さと白熱ラインの比率も綺麗に自動スケールさせます
-  const goldThickness = Math.max(4, Math.floor(stepWidth * 0.4)); 
-  const lineGap = Math.max(2, Math.floor(stepWidth * 0.2));
-
-  // 現在の合計得点の数だけ、ベースデザインの内側に、動的に計算された極太枠の壁を1枚ずつ綺麗に積み上げていく
-  for (let i = 1; i <= totalVotes; i++) {
-      let offsetBlack = 62 + (i * stepWidth); 
-      let offsetGold = offsetBlack + goldThickness;
-      let offsetNextLine = offsetGold + lineGap;
-      
-      shadowString += ", inset 0 0 0 " + offsetBlack + "px #ffcc00" +
-                      ", inset 0 0 0 " + offsetGold + "px #fff2a3" +
-                      ", inset 0 0 0 " + offsetNextLine + "px #000000";
+  // カウントが1票以上ある時だけ、伸びる内枠の影をパキッと1本結合
+  if (totalVotes > 0) {
+      shadowString += ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width))) #000000" +
+                      ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width)) - var(--line-gap)) #fff2a3" +
+                      ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width)) - var(--line-gap) - var(--gold-thickness)) #ffcc00";
   }
   
-  // 影を適用
+  // 最終適用
   card.style.boxShadow = shadowString;
 }
 
