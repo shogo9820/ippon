@@ -1,10 +1,9 @@
-/* public/shared/css/buzzer.css */
 body {
     font-family: system-ui, -apple-system, sans-serif;
     margin: 0;
     padding: 20px;
-    background-color: #1a1a1a; /* 高級感のあるクイズ番組のダーク背景 */
-    color: #ffffff;
+    background-color: #f7f6f3;
+    color: #1a1a1a;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -12,14 +11,14 @@ body {
 }
 
 .buzzer-container {
-    background: #2a2a2a;
-    padding: 25px 20px;
-    border-radius: 20px;
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.5);
-    border: 2px solid #444;
+    background: #ffffff;
+    padding: 30px 20px;
+    border-radius: 16px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.05);
+    border: 1px solid #dcd6cd;
     text-align: center;
     width: 100%;
-    max-width: 420px;
+    max-width: 400px;
     box-sizing: border-box;
 }
 
@@ -27,139 +26,64 @@ input[type="text"] {
     width: 100%;
     padding: 14px;
     font-size: 1.1rem;
-    border: 2px solid #555;
+    border: 1px solid #dcd6cd;
     border-radius: 10px;
     outline: none;
     box-sizing: border-box;
     text-align: center;
-    background-color: #1a1a1a;
-    color: #fff;
-}
-input[type="text"]:focus {
-    border-color: #ff3333;
-}
-
-/* 🚨 ① ランプ設定 */
-.buzzer-lamp {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: radial-gradient(circle at 30% 30%, #555555, #222222); /* 普段は消灯（グレー） */
-    border: 3px solid #111111;
-    margin: 0 auto 15px auto;
-    box-shadow: inset 0 2px 4px rgba(0,0,0,0.5);
-    transition: all 0.1s ease;
-}
-/* 👑 解答権獲得時の点灯エフェクト（赤色にパッと発光） */
-.buzzer-lamp.lamp-active {
-    background: radial-gradient(circle at 30% 30%, #ff5555, #cc0000);
-    border-color: #ffffff;
-    box-shadow: 0 0 20px #ff3333, 0 0 40px #ff3333;
-}
-
-/* 👤 ② プレイヤー名表示 */
-.player-name-display {
-    font-size: 1.1rem;
-    font-weight: bold;
-    color: #cccccc;
-    margin-bottom: 15px;
-}
-.player-name-display span {
-    color: #ffffff;
-    text-decoration: underline #555;
-}
-
-/* 📺 ③ 問題文表示欄 */
-.question-board {
-    background: #111111;
-    border: 2px solid #444;
-    border-radius: 10px;
-    padding: 12px 10px;
-    margin-bottom: 20px;
-    box-shadow: inset 0 2px 8px rgba(0,0,0,0.8);
-}
-.question-board-title {
-    font-size: 0.75rem;
-    font-weight: bold;
-    color: #ffaa00;
-    margin-bottom: 6px;
-    letter-spacing: 0.05em;
-}
-.question-board-text {
-    font-size: 1.2rem;
-    font-weight: 900;
-    color: #ffffff;
-    line-height: 1.4;
-    word-break: break-all;
-}
-
-/* ⚙️ ④ 下部情報・操作エリア */
-.control-area {
-    background: rgba(0, 0, 0, 0.2);
-    padding: 15px;
-    border-radius: 12px;
-    border: 1px solid #3a3a3a;
 }
 
 .score-display {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: bold;
-    color: #ddd;
-    margin-bottom: 8px;
-}
-.score-display span {
-    font-size: 1.3rem;
-    color: #ffcc00;
+    margin: 15px 0;
+    color: #555;
 }
 
-.status-display {
-    font-size: 1.05rem;
-    font-weight: bold;
-    margin-bottom: 18px;
+/* 🚨 ランプ設定（通常：消灯グレー） */
+.buzzer-lamp {
+    width: 35px;
+    height: 35px;
+    border-radius: 50%;
+    background: #aaaaaa;
+    border: 2px solid #555555;
+    margin: 0 auto 15px auto;
+}
+
+/* 👑 ランプ点灯時（赤く光る） */
+.buzzer-lamp.lamp-active {
+    background: #ff3333;
+    box-shadow: 0 0 10px #ff3333;
 }
 
 /* 🟥 巨大早押し丸ボタン */
 #buzzer-btn {
-    font-size: 2.2rem;
+    background-color: #ff3333;
+    color: white;
+    font-size: 2.5rem;
     font-weight: 900;
     border: none;
     border-radius: 50%;
-    width: 160px;
-    height: 160px;
-    margin: 10px auto 0 auto;
+    width: 200px;
+    height: 200px;
+    margin: 20px auto;
     display: flex;
     justify-content: center;
     align-items: center;
+    box-shadow: 0 10px 25px rgba(255, 51, 51, 0.4);
     cursor: pointer;
-    transition: all 0.1s ease;
+    transition: transform 0.1s ease, background-color 0.2s ease, opacity 0.2s ease;
 }
 
-/* 🟢 ボタンが押せる状態（分厚い3D座布団つき） */
-#buzzer-btn.btn-ready {
-    background: radial-gradient(circle at 30% 30%, #ff5555, #cc0000);
-    color: white;
-    box-shadow: 0 10px 0 #880000, 0 12px 20px rgba(255, 51, 51, 0.4);
-}
-#buzzer-btn.btn-ready:active {
-    transform: translateY(8px);
-    box-shadow: 0 2px 0 #880000, 0 4px 8px rgba(255, 51, 51, 0.3);
+#buzzer-btn:active {
+    background-color: #e02828;
+    transform: scale(0.92);
+    box-shadow: 0 4px 10px rgba(255, 51, 51, 0.2);
 }
 
-/* 🛑 他の人が回答中でロックがかかっている状態 */
-#buzzer-btn.btn-locked {
-    background: #4a1515 !important;
-    color: #885555 !important;
-    box-shadow: 0 4px 0 #2a0000 !important;
-    transform: translateY(6px);
-    opacity: 0.7;
-    cursor: not-allowed;
-}
-
-/* ⚪ 待機状態・無効状態 */
-#buzzer-btn.btn-disabled {
-    background: #444444 !important;
-    color: #777777 !important;
-    box-shadow: 0 4px 0 #222222 !important;
-    transform: translateY(6px);
+#buzzer-btn:disabled {
+    background-color: #aaaaaa !important;
+    box-shadow: none !important;
+    opacity: 0.6;
     cursor: not-allowed;
 }

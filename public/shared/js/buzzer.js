@@ -1,7 +1,7 @@
 const socket = io();
 let myConfirmedName = "";
 let hasLoggedIn = false;
-let isMyTurn = false; // 自分が解答権を持っているかどうかのフラグ
+let isMyTurn = false; 
 
 window.addEventListener('DOMContentLoaded', () => {
     renderLoginScreen();
@@ -13,7 +13,7 @@ function renderLoginScreen() {
     
     container.innerHTML = `
         <div style="margin-bottom: 20px;">
-            <h2 style="font-weight:900; margin-top:0; color:#ff3333;">🔴 回答者 ログイン</h2>
+            <h2 style="font-weight:900; margin-top:0;">🔴 回答者 ログイン</h2>
             <label style="display:block; margin-bottom:8px; font-weight:bold; color:#444; text-align:left;">プレイヤー名：</label>
             <input type="text" id="player-name" placeholder="名前を入力してください" value="プレイヤー">
         </div>
@@ -44,11 +44,10 @@ function submitLogin() {
 function triggerBuzzer() {
     if (!myConfirmedName) return;
     
-    // 【連打・誤爆防止】押した瞬間にボタンをグレーアウトして即ロック
+    // 【連打防止】
     const btn = document.getElementById('buzzer-btn');
     if (btn) {
         btn.disabled = true;
-        btn.className = "btn-disabled"; 
         btn.innerText = "送信中...";
     }
     
@@ -67,64 +66,49 @@ socket.on('updateState', (state) => {
 
     if (state.phase === 'playing') {
         const myScore = (state.scores && state.scores[myConfirmedName] !== undefined) ? state.scores[myConfirmedName] : 0;
-        
-        // サーバーから届く現在のお題テキスト（無ければ待機文字）
         const currentQuestionText = state.currentQuestion || "（出題をお待ちください）";
 
-        // 💡 1. サーバー上の「現在の発言者」が自分自身であるかを最優先でチェック
         isMyTurn = (state.currentPresenter === myConfirmedName);
 
-        // 💡 自分の番ならランプをアクティブ（点灯）にする
+        // 💡 自分の番ならランプを点灯させるクラスを付与
         const lampClass = isMyTurn ? "buzzer-lamp lamp-active" : "buzzer-lamp";
 
-        // 💡 状態に応じた「回答権の有無」のテキストとボタンの見た目の設定
         let statusText = "待機中";
         let btnDisabled = true;
-        let btnClass = "btn-disabled"; 
-        let statusColor = "#888888";
 
         if (isMyTurn) {
-            // 💡 解答権を獲得した瞬間
-            statusText = "👑 解答権獲得！";
-            statusColor = "#ffaa00"; // 華やかなゴールド
-            btnDisabled = true;      // 獲得済みのときはボタンは押せなくてOK
-            btnClass = "btn-disabled";
+            // 💡 ご指示通り、回答権を獲得したときに「解答権の獲得」と表示
+            statusText = "解答権の獲得";
+            btnDisabled = true;
         } else {
-            // 💡 それ以外の通常のゲームステータス判定
             if (state.status === 'question') {
                 statusText = "📢 ボタンを押せます！";
                 btnDisabled = false;
-                btnClass = "btn-ready";
-                statusColor = "#2e9e45";
             } else if (state.status === 'answered' || state.status === 'voting') {
                 statusText = `🛑 ${state.currentPresenter || '誰か'}が回答中です`;
-                btnClass = "btn-locked";
-                statusColor = "#ff3333";
             } else if (state.status === 'correct') {
                 statusText = "🎉 正解発表中";
-                statusColor = "#2e9e45";
             }
         }
 
-        // 💡【ご指定のUIレイアウト】上から順番に要素を綺麗に配置します
+        // 💡 ご指示いただいた通りの純粋な縦並びUI
         container.innerHTML = `
-            <!-- ① ランプ -->
+            <!-- ランプ -->
             <div class="${lampClass}"></div>
 
-            <!-- ② プレイヤー名 -->
-            <div class="player-name-display">👤 プレイヤー: <span>${myConfirmedName}</span></div>
+            <!-- プレイヤー名 -->
+            <div style="font-size:1.1rem; font-weight:bold; margin-bottom:15px;">プレイヤー: ${myConfirmedName}</div>
 
-            <!-- ③ 問題文表示欄 -->
-            <div class="question-board">
-                <div class="question-board-title">Q. 問題・お題</div>
-                <div class="question-board-text">${currentQuestionText}</div>
+            <!-- 問題文表示欄 -->
+            <div style="border:1px solid #dcd6cd; padding:15px; border-radius:10px; margin-bottom:20px; font-size:1.2rem; font-weight:bold; background:#fafafa; color:#1a1a1a;">
+                ${currentQuestionText}
             </div>
 
-            <!-- ④ 下部情報・操作エリア -->
-            <div class="control-area">
-                <div class="score-display">現在のスコア: <span>${myScore}</span> pt</div>
-                <div class="status-display" style="color: ${statusColor};">回答権の有無: <strong>${statusText}</strong></div>
-                <button id="buzzer-btn" class="${btnClass}" onclick="triggerBuzzer()" ${btnDisabled ? 'disabled' : ''}>PUSH</button>
+            <!-- スコア・回答権の有無・ボタン -->
+            <div>
+                <div class="score-display">現在のスコア: <span id="my-score">${myScore}</span> pt</div>
+                <div style="font-size:1.1rem; font-weight:bold; margin-bottom:15px;">回答権の有無: ${statusText}</div>
+                <button id="buzzer-btn" onclick="triggerBuzzer()" ${btnDisabled ? 'disabled' : ''}>PUSH</button>
             </div>
         `;
     } else if (state.phase === 'setup') {
