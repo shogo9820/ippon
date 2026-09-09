@@ -168,3 +168,141 @@ input[type="text"] {
 .my-turn-flash .question-display {
     border-color: #ffd400;
 }
+
+/* --- 以下のCSSコードを buzzer.css の末尾にすべて追記（または前回の追加分と差し替え）してください --- */
+
+/* 📺 PC大画面のデザインをそのまま再現したミニ額縁フレームの土台 */
+.mini-stage-framework {
+    position: relative;
+    width: 100%;
+    min-height: 140px;
+    margin-bottom: 25px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    box-sizing: border-box;
+    padding: 25px 20px 15px 20px;
+
+    /* PC大画面と全く同じ、四隅を美しく削いだ本家風の6角形フレーム形状 */
+    clip-path: polygon(30px 0%, calc(100% - 30px) 0%,
+            100% 30px, 100% calc(100% - 30px),
+            calc(100% - 30px) 100%, 30px 100%,
+            0% calc(100% - 30px), 0% 30px);
+}
+
+/* 🟨 大喜利（IPPON）モード時のゴールド多重額縁（ミニサイズ版） */
+.mini-stage-framework.mini-ippon-card {
+    background-color: #ffcc00;
+    color: #000000;
+    box-shadow:
+        inset 0 0 0 3px #000000,
+        inset 0 0 0 6px #fff2a3,
+        inset 0 0 0 11px #000000,
+        inset 0 0 0 14px #ffcc00,
+        inset 0 0 0 19px #000000;
+}
+
+/* 🟥 クイズモード時のホワイト＆レッド多重額縁（ミニサイズ版） */
+.mini-stage-framework.mini-quiz-card {
+    background-color: #ffffff;
+    color: #000000;
+    box-shadow:
+        inset 0 0 0 3px #ff3333,
+        inset 0 0 0 6px #ffcccc,
+        inset 0 0 0 11px #000000,
+        inset 0 0 0 14px #ff3333,
+        inset 0 0 0 19px #000000;
+}
+
+/* 📝 フレーム内のお題・問題文テキスト */
+.mini-stage-text {
+    font-size: 1.15rem;
+    font-weight: 900;
+    line-height: 1.4;
+    color: #000000;
+    word-break: break-all;
+    padding: 0 10px;
+    z-index: 2;
+}
+
+/* 🚨 【新設】解答権パトランプ本体（フレームの上部中央にフローティング配置） */
+.buzzer-lamp {
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #555, #222); /* 普段は完全に消灯したグレー球 */
+    border: 2px solid #000000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    z-index: 10;
+    transition: all 0.2s ease;
+}
+
+/* 👑 【解答権獲得！】ランプが限界突破して大光彩を放ち超高速フラッシュする状態 */
+.buzzer-lamp.lamp-active {
+    background: radial-gradient(circle at 35% 35%, #ffffff, #ff1a1a); /* 鮮烈な白熱コアと赤クリアカバー */
+    border-color: #ffffff;
+    animation: lampFlashEffect 0.25s infinite alternate; /* 超高速パチパチ点滅 */
+}
+
+/* ランキング1位席さながらの激しい閃光アニメーション */
+@keyframes lampFlashEffect {
+    from {
+        box-shadow: 
+            0 0 8px #ff3333,
+            0 0 20px #ff3333,
+            0 0 40px #fff;
+        transform: translateX(-50%) scale(1.0);
+    }
+    to {
+        box-shadow: 
+            0 0 20px #ff3333,
+            0 0 45px #ffaa00,
+            0 0 75px #ffffff;
+        transform: translateX(-50%) scale(1.2); /* 輝きで一回り巨大化して見える演出 */
+        background: radial-gradient(circle at 35% 35%, #ffffff, #ff8800); /* 閃光時はオレンジゴールドにスパーク */
+    }
+}
+
+/* 自分の番のときの特別仕様コンテナ（外枠がじんわりゴールドに波打つ） */
+.buzzer-container.my-turn-flash {
+    background: linear-gradient(135deg, #111 0%, #2c2200 100%);
+    border: 3px solid #ffd400;
+    animation: borderGlow 1s infinite alternate;
+}
+@keyframes borderGlow {
+    from { box-shadow: 0 0 15px rgba(255, 212, 0, 0.3); }
+    to { box-shadow: 0 0 30px rgba(255, 212, 0, 0.8); }
+}
+
+.turn-announcement {
+    margin-top: 20px;
+    padding: 15px;
+    background: rgba(255, 212, 0, 0.1);
+    border-radius: 12px;
+    border: 1px dashed #ffd400;
+}
+.turn-announcement h2 {
+    color: #ffd400;
+    font-size: 1.6rem;
+    font-weight: 900;
+    margin: 8px 0;
+    text-shadow: 0 0 10px rgba(255, 212, 0, 0.4);
+}
+.turn-emoji {
+    font-size: 3rem;
+    animation: bounce 0.6s infinite alternate;
+}
+.turn-subtext {
+    color: #ffffff;
+    font-size: 1rem;
+    font-weight: bold;
+}
+@keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-12px); }
+}
