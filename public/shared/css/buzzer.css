@@ -80,3 +80,52 @@ input[type="text"] {
     opacity: 0.6;
     cursor: not-allowed;
 }
+
+/* --- 以下のCSSコードを buzzer.css の末尾に追記してください --- */
+
+/* 👑 自分が解答権を勝ち取ったときのスペシャル全画面演出 */
+.buzzer-container.my-turn-flash {
+    background: linear-gradient(135deg, #111 0%, #2c2200 100%);
+    border: 3px solid #ffd400; /* おめでたいゴールド枠 */
+    animation: borderGlow 1s infinite alternate; /* 枠線をじんわり光らせる */
+}
+
+/* 解答権獲得時の文字とデザイン */
+.turn-announcement {
+    margin-top: 30px;
+    padding: 20px;
+    background: rgba(255, 212, 0, 0.1);
+    border-radius: 12px;
+    border: 1px dashed #ffd400;
+}
+
+.turn-announcement h2 {
+    color: #ffd400;
+    font-size: 1.8rem;
+    font-weight: 900;
+    margin: 10px 0;
+    text-shadow: 0 0 10px rgba(255, 212, 0, 0.4);
+}
+
+.turn-emoji {
+    font-size: 4rem;
+    animation: bounce 0.6s infinite alternate; /* 王冠をピョコピョコ跳ねさせる */
+}
+
+.turn-subtext {
+    color: #ffffff;
+    font-size: 1.1rem;
+    font-weight: bold;
+}
+
+/* アニメーション：王冠のバウンド */
+@keyframes bounce {
+    from { transform: translateY(0); }
+    to { transform: translateY(-15px); }
+}
+
+/* アニメーション：ゴールド枠の輝き */
+@keyframes borderGlow {
+    from { box-shadow: 0 0 15px rgba(255, 212, 0, 0.3); }
+    to { box-shadow: 0 0 30px rgba(255, 212, 0, 0.8); }
+}

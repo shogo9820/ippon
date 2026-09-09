@@ -199,10 +199,21 @@ io.on('connection', (socket) => {
     });
 
     socket.on('pressBuzzer', (data) => {
+        // まだ誰も押していない（question状態の）時だけ受け付ける
         if (gameState.status === 'question') {
             gameState.currentPresenter = data.playerName;
+            
+            // モードに応じてステータスを切り替え
             gameState.status = gameState.mode === 'ippon' ? 'voting' : 'answered';
+            
+            // 💡【追加】一番に押した本人（このsocket）だけに「解答権獲得」の通知を個別に送る
+            socket.emit('buzzerResult', { isFastest: true });
+            
+            // 全体へ状態を同期（これで他の人は自動的にロック画面になります）
             sendState();
+        } else {
+            // 💡【追加】一歩遅くて先を越されてしまった本人に「残念」の通知を送る
+            socket.emit('buzzerResult', { isFastest: false });
         }
     });
 

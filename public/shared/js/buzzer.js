@@ -1,11 +1,9 @@
-// public/shared/js/buzzer.js
 const socket = io();
 let myConfirmedName = "";
 let hasLoggedIn = false;
+let isMyTurn = false; // 💡 自分が解答権を持っているかどうかのフラグ
 
-// 💡 画面内のHTML要素を直接生成して差し替える（HTMLを書き換えずにJSだけで綺麗に切り替えます）
 window.addEventListener('DOMContentLoaded', () => {
-    // 初期状態：名前入力画面を表示
     renderLoginScreen();
 });
 
@@ -15,11 +13,11 @@ function renderLoginScreen() {
     
     container.innerHTML = `
         <div style="margin-bottom: 20px;">
-            <h2 style="font-weight:900; margin-top:0;">🔴 回答者 ログイン</h2>
+            <h2 style="font-weight:900; margin-top:0; color:#ff3333;">🔴 回答者 ログイン</h2>
             <label style="display:block; margin-bottom:8px; font-weight:bold; color:#444; text-align:left;">プレイヤー名：</label>
             <input type="text" id="player-name" placeholder="名前を入力してください" value="プレイヤー">
         </div>
-        <button id="login-btn" onclick="submitLogin()" style="width:100%; padding:15px; background:#28a745; color:white; font-size:1.2rem; font-weight:bold; border:none; border-radius:10px; cursor:pointer;">部屋に入る 🚪</button>
+        <button id="login-btn" onclick="submitLogin()" style="width:100%; padding:15px; background:#28a745; color white; font-size:1.2rem; font-weight:bold; border:none; border-radius:10px; cursor:pointer;">部屋に入る 🚪</button>
         <p id="wait-msg" style="color:#666; font-weight:bold; margin-top:20px; display:none;">MCがゲームを開始するまでお待ちください...</p>
     `;
 }
@@ -34,10 +32,8 @@ function submitLogin() {
     myConfirmedName = name;
     hasLoggedIn = true;
 
-    // サーバーに「回答者(buzzer)」として参加を通知
     socket.emit('joinUser', { name: name, role: 'buzzer' });
 
-    // 入力フォームを隠して待機状態にする
     if (nameInput) nameInput.disabled = true;
     const loginBtn = document.getElementById('login-btn');
     if (loginBtn) loginBtn.style.display = 'none';
@@ -47,66 +43,94 @@ function submitLogin() {
 
 function triggerBuzzer() {
     if (!myConfirmedName) return;
+    
+    if (navigator.vibrate) {
+        navigator.vibrate(100);
+    }
+    
     socket.emit('pressBuzzer', { playerName: myConfirmedName });
 }
 
-// サーバーからのゲーム状態更新を監視して、手元を「巨大ボタン」へトランスフォームさせる
 socket.on('updateState', (state) => {
     if (!hasLoggedIn) return;
 
     const container = document.querySelector('.buzzer-container');
     if (!container) return;
 
-    // 💡 MCがゲーム開始（playing）を押した瞬間に、手元をデカいボタン画面に切り替える！
     if (state.phase === 'playing') {
         const myScore = (state.scores && state.scores[myConfirmedName] !== undefined) ? state.scores[myConfirmedName] : 0;
         
+        // 💡 サーバー上の「現在の発言者」が自分自身であるかチェック
+        isMyTurn = (state.currentPresenter === myConfirmedName);
+
+        // 💡 もし自分の番なら、特別仕様の「あなたが解答権獲得！」画面を全画面に表示
+        if (isMyTurn) {
+            container.className = "buzzer-container my-turn-flash"; // 特殊な背景アニメーション用のクラス
+            container.innerHTML = `
+                <div class="score-display">現在のスコア: <span>${myScore}</span> pt</div>
+                <div class="turn-announcement">
+                    <div class="turn-emoji">👑</div>
+                    <h2>あなたの解答権です！</h2>
+                    <p class="turn-subtext">思いっきり回答してください！</p>
+                </div>
+            `;
+            return; // 自分の番の演出のときは、下の通常ボタン生成をスキップ
+        }
+
+        // --- 以下、自分以外のターン、または待機中の通常表示 ---
+        container.className = "buzzer-container"; // クラスを元に戻す
+        
         let statusText = "出題をお待ちください...";
         let btnDisabled = true;
+        let btnClass = "btn-disabled"; 
         let textColor = "#555555";
 
         if (state.status === 'question') {
             statusText = "📢 ボタンを押せます！";
             btnDisabled = false;
+            btnClass = "btn-ready";
             textColor = "#2e9e45";
-        } else if (state.status === 'answered') {
-            statusText = "🛑 誰かが回答中です";
+        } else if (state.status === 'answered' || state.status === 'voting') {
+            // 誰かが押した（自分ではない）状態
+            statusText = `🛑 ${state.currentPresenter || '誰か'}が回答中です`;
+            btnClass = "btn-locked";
             textColor = "#ff3333";
         } else if (state.status === 'correct') {
             statusText = "🎉 正解発表中";
             textColor = "#2e9e45";
-        } else if (state.status === 'voting') {
-            statusText = "🗳️ 大喜利 投票受付中";
-            textColor = "#ffae00";
         }
 
         container.innerHTML = `
             <div class="score-display">現在のスコア: <span id="my-score">${myScore}</span> pt</div>
             <div id="buzzer-status" class="status-text" style="color: ${textColor};">${statusText}</div>
-            <button id="buzzer-btn" onclick="triggerBuzzer()" ${btnDisabled ? 'disabled' : ''}>PUSH</button>
+            <button id="buzzer-btn" class="${btnClass}" onclick="triggerBuzzer()" ${btnDisabled ? 'disabled' : ''}>PUSH</button>
         `;
     } else if (state.phase === 'setup') {
-        // 全リセット(setup)がかかったら名前入力に戻す
         hasLoggedIn = false;
+        isMyTurn = false;
+        container.className = "buzzer-container";
         renderLoginScreen();
     }
 });
 
+// 💡 サーバーから直接早押し合戦の結果が届いた時の処理（念のためのバイブ補強）
 socket.on('buzzerResult', (data) => {
-    const statusDiv = document.getElementById('buzzer-status');
-    if (!statusDiv) return;
     if (data.isFastest) {
-        statusDiv.innerText = "🏆 一番乗り！解答権獲得！";
-        statusDiv.style.color = "#2e9e45";
+        if (navigator.vibrate) {
+            // 自分が取れたら「トントントン！」と小気味よく3回振動
+            navigator.vibrate([80, 50, 80, 50, 100]);
+        }
+    } else {
+        if (navigator.vibrate) {
+            // 競り負けたら「ブーーー」と長めに1回振動
+            navigator.vibrate(300);
+        }
     }
 });
 
-// 💡 サーバーから重ならないおすすめの初期名前を受け取って入力欄にはめ込む
 socket.on('initDefaultName', (data) => {
-    const idInput = document.getElementById('player-id');
-    // すでにユーザーが自分で文字を入力し始めていない場合（初期状態の「プレイヤー」のままの時）だけ上書き
+    const idInput = document.getElementById('player-name');
     if (idInput && (idInput.value === "プレイヤー" || idInput.value === "")) {
-        idInput.value = data.defaultBuzzerName; // 「プレイヤー1」「プレイヤー2」等が入る
+        idInput.value = data.defaultBuzzerName;
     }
 });
-
