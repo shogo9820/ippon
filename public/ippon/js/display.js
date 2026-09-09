@@ -46,28 +46,26 @@ function updateIpponCardFramework(votes, currentVotersCount = 5) {
       if (effect) effect.innerHTML = "";
   }
 
-  // 2. 💡【人数連動仕様の完全固定化】
-  // 人数（最大満票数）に応じて、中央の空間がぴったり埋まる1マスの太さを1回だけ計算
+  // 2. 💡【人数連動仕様の太さ計算】
+  // 人数に応じて、中央の空間がぴったり埋まる1マスの太さを計算
   const stepWidth = maxPossiblePoints > 0 ? (320 / maxPossiblePoints) : 25; 
   
-  // 3. 💡【今回の肝：CSS変数への一発代入】
-  // JavaScriptから重い影の文字データを送るのを完全にやめ、「数字」だけをパチッとCSSへ代入します
+  // 3. 💡【CSS変数への数字代入】
   card.style.setProperty('--current-votes', totalVotes);
   card.style.setProperty('--step-width', `${stepWidth}px`);
-  card.style.setProperty('--gold-thickness', `${stepWidth * 0.45}px`); // 太さに合わせて自動スケール
-  card.style.setProperty('--line-gap', `${stepWidth * 0.2}px`);
+  card.style.setProperty('--gold-thickness', `${stepWidth * 0.5}px`); // 黄色い線の幅（1マスの約半分）
+  card.style.setProperty('--line-gap', `${stepWidth * 0.15}px`);      // 白熱ラインの幅
 
-  // 4. 💡【ブラウザ側でパキッと描画させる計算式】
-  // 画像に写っている「元々の美しいベース額縁デザイン（62px分）」を完全に固定したまま、
-  // JavaScriptのforループを完全に廃止し、CSSの内部計算（calc）に1本のシャドウだけで綺麗に伸びる命令を通します。
-  
+  // 4. 💡【修正完了：パキッと見える正しい重ね順の足し算式】
+  // 画像に写っている「元々の美しいベース額縁デザイン（62px分）」を100%維持します。
   let shadowString = "inset 0 0 0 14px #000000, inset 0 0 0 24px #fff2a3, inset 0 0 0 38px #000000, inset 0 0 0 48px #ffcc00, inset 0 0 0 62px #000000";
   
-  // カウントが1票以上ある時だけ、伸びる内枠の影をパキッと1本結合
+  // 💡 カウントが1票以上ある時、ベースの62pxから「内側（pxが大きい方）」へ向かって、
+  // 【黄色 ➡️ 白熱ライン ➡️ 次のマスとの境界線の黒】の順番で正しく重なるように足し算で組み立て直しました。
   if (totalVotes > 0) {
-      shadowString += ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width))) #000000" +
+      shadowString += ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width)) - var(--line-gap) - var(--gold-thickness)) #ffcc00" +
                       ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width)) - var(--line-gap)) #fff2a3" +
-                      ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width)) - var(--line-gap) - var(--gold-thickness)) #ffcc00";
+                      ", inset 0 0 0 calc(62px + (var(--current-votes) * var(--step-width))) #000000";
   }
   
   // 最終適用
