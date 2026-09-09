@@ -24,22 +24,26 @@ function typeWriter(text, elementId, speed = 80) {
 
 // --- public/ippon/js/display.js の updateIpponCardFramework を極太版に差し替え ---
 
+// --- public/ippon/js/display.js の updateIpponCardFramework を以下に丸ごと差し替え ---
+
 function updateIpponCardFramework(votes, currentVotersCount = 5) {
   const card = document.getElementById("ippon-stage-card");
   const effect = document.getElementById("effect-area");
   if (!card) return;
 
-  // 1点＝1枠、2点＝2枠として、現在の「合計得点（票数）」を純粋に累積
+  // 1. 現在の「合計得点（票数）」を算出
   const totalVotes = Object.values(votes || {}).reduce((a, b) => a + b, 0);
   
-  // 【変数：満票 ＝ 投票者 * 2】の計算
+  // 【満票 ＝ 投票者 * 2】
   const maxPossiblePoints = currentVotersCount * 2;
 
-  // 【IF 票 ＝ 満票】なら中央の長方形を完全に埋めてIPPONの演出！
+  // 🔥 【満票（IPPON）に達した瞬間】
   if (totalVotes >= maxPossiblePoints && maxPossiblePoints > 0) {
-      // 満票時は完全に画面を黄金で埋め尽くす（多重影を完全にリセットして一面をゴールドに）
-      card.style.boxShadow = "inset 0 0 0 14px #000000, inset 0 0 0 24px #fff2a3, inset 0 0 0 38px #000000, inset 0 0 0 48px #ffcc00, inset 0 0 0 62px #000000" +
-                             ", inset 0 0 0 300vw #ffcc00, inset 0 0 0 300vh #ffcc00";
+      card.style.background = "#ffcc00"; // 一面ゴールド
+      // 既存の枠を全て消去
+      const oldContainers = card.querySelectorAll('.ippon-framework-container');
+      oldContainers.forEach(el => el.remove());
+      
       if (effect) {
           effect.innerHTML = '<div class="ippon-gold-box">IPPON</div>';
       }
@@ -48,26 +52,43 @@ function updateIpponCardFramework(votes, currentVotersCount = 5) {
       if (effect) effect.innerHTML = "";
   }
 
-  // 通常時の黒と黄色のベース額縁デザイン
-  let shadowString = "inset 0 0 0 14px #000000, inset 0 0 0 24px #fff2a3, inset 0 0 0 38px #000000, inset 0 0 0 48px #ffcc00, inset 0 0 0 62px #000000";
-  
-  // 💡【重要修正】満票時の枠の数（10枠や12枠）に合わせて、中央がぴったり埋まる「太さ」を自動で割り出す
-  // 5人の時（10枠）は1枠38px、6人の時（12枠）は1枠31px のように自動で極太の最適な幅になります
-  const stepWidth = Math.floor(380 / maxPossiblePoints); 
-  const goldThickness = Math.floor(stepWidth * 0.4); // 黄色い線の厚みも枠の太さに合わせて自動で肉厚化
-  const lineGap = Math.floor(stepWidth * 0.5);
+  // 2. 💡【新方式】カードの内側に、満票数に応じた入れ子（マトリョーシカ状）の枠線ブロックを生成する
+  // 既に生成済みの枠がなければ、1回だけ枠の土台を綺麗に組み立てる
+  let frameworkContainer = card.querySelector('.ippon-framework-container');
+  if (!frameworkContainer) {
+      // 古い枠があれば念のため削除
+      const oldContainers = card.querySelectorAll('.ippon-framework-container');
+      oldContainers.forEach(el => el.remove());
 
-  // 現在の合計得点の数だけ、極太の内枠の壁を1枚ずつ内側に積み上げていく
-  for (let i = 1; i <= totalVotes; i++) {
-      let offsetBlack = 62 + (i * stepWidth); 
-      let offsetGold = offsetBlack + goldThickness;
-      let offsetNextLine = offsetGold + lineGap;
+      // 一番外側のコンテナ
+      frameworkContainer = document.createElement('div');
+      frameworkContainer.className = 'ippon-framework-container';
+      card.appendChild(frameworkContainer);
+
+      let currentParent = frameworkContainer;
       
-      shadowString += ", inset 0 0 0 " + offsetBlack + "px #ffcc00" +
-                      ", inset 0 0 0 " + offsetGold + "px #fff2a3" +
-                      ", inset 0 0 0 " + offsetNextLine + "px #000000";
+      // 満票の数だけ、内側へ内側へと「入れ子構造」の箱を作っていく
+      for (let i = 0; i < maxPossiblePoints; i++) {
+          const frameBox = document.createElement('div');
+          frameBox.className = `ippon-nest-frame frame-index-${i}`;
+          
+          currentParent.appendChild(frameBox);
+          currentParent = frameBox; // 次のループではこの箱の内側にさらに箱を作る
+      }
   }
-  card.style.boxShadow = shadowString;
+
+  // 3. 💡【重要】現在の合計票数（totalVotes）に応じて、外側の箱から順番に「点灯クラス（active）」を付与する
+  // 外側（インデックスが小さい箱）から色が変わっていきます
+  for (let i = 0; i < maxPossiblePoints; i++) {
+      const targetFrame = card.querySelector(`.frame-index-${i}`);
+      if (targetFrame) {
+          if (i < totalVotes) {
+              targetFrame.classList.add('active'); // 票が入ったので極太ゴールド化
+          } else {
+              targetFrame.classList.remove('active'); // まだ票が入っていないので黒枠
+          }
+      }
+  }
 }
 
 socket.on('responseIpponQR', (data) => {
