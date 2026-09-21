@@ -199,9 +199,50 @@ socket.on("updateState", (state) => {
             playScaleSound(currentTotalVotes); // 🎵 ドレミを鳴らす
         } 
         // ちょうど満票（IPPON）に達した瞬間
+        // ちょうど満票（IPPON）に達した瞬間
         else if (currentTotalVotes >= maxPossibleVotes && window.lastVoteCountForAudio < maxPossibleVotes) {
-            audioIppon.currentTime = 0;
-            audioIppon.play().catch(e => console.log("IPPON音ブロック:", e)); // 👑 IPPON！
+            
+            // 👑 1. ブラウザに「イッポン！」と喋らせる（声の追加）
+            try {
+                // もし前の音声が残っていたら強制停止
+                window.speechSynthesis.cancel();
+                
+                const uttr = new SpeechSynthesisUtterance("イッポン");
+                uttr.lang = "ja-JP";
+                uttr.rate = 1.1;  // キレを出すために少し早口に
+                uttr.pitch = 0.6; // 本家風の重厚感を出すためにかなり低音に設定
+                window.speechSynthesis.speak(uttr);
+            } catch(e) {
+                console.log("音声合成エラー:", e);
+            }
+
+            // 💥 2. 同時に本家風の重低音（ドォォン！）をプログラムで生成して鳴らす
+            try {
+                const AudioContext = window.AudioContext || window.webkitAudioContext;
+                const ctx = new AudioContext();
+                
+                // 低音用の発振器
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                
+                // ズシンと響く三角波
+                osc.type = 'triangle'; 
+                // 80Hz（重低音）から始まり、0.4秒かけて30Hzまで一気に落として余韻を作る（地響き効果）
+                osc.frequency.setValueAtTime(80, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(30, ctx.currentTime + 0.4);
+                
+                // 音量調整（爆発的なアタックから滑らかに消える）
+                gain.gain.setValueAtTime(0.6, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+                
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                
+                osc.start();
+                osc.stop(ctx.currentTime + 0.6);
+            } catch(e) {
+                console.log("重低音生成エラー:", e);
+            }
         }
         window.lastVoteCountForAudio = currentTotalVotes; // 最新の票数を記憶
     } else {
