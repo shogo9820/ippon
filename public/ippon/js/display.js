@@ -2,6 +2,68 @@
 const socket = io();
 let typingTimer = null;
 let lastDisplayedQuestion = ""; 
+// 🎵 1. IPPONの音源（※ public/ippon/audio/ippon.mp3 などを置いてください）
+const audioIppon = new Audio('/ippon/audio/ippon.mp3');
+
+// 🎵 2. 票の数に応じて「ドレミファソ…」を生成して鳴らす関数
+function playScaleSound(voteCount) {
+    if (voteCount <= 0) return;
+    
+// ドから始まる音階の周波数（ヘルツ）リスト：最大20票まで対応
+    const frequencies = [
+        261.63, // 1票目：ド (C4)
+        293.66, // 2票目：レ (D4)
+        329.63, // 3票目：ミ (E4)
+        349.23, // 4票目：ファ (F4)
+        392.00, // 5票目：ソ (G4)
+        440.00, // 6票目：ラ (A4)
+        493.88, // 7票目：シ (B4)
+        
+        523.25, // 8票目：ド (C5)
+        587.33, // 9票目：レ (D5)
+        659.25, // 10票目：ミ (E5)
+        698.46, // 11票目：ファ (F5)
+        783.99, // 12票目：ソ (G5)
+        880.00, // 13票目：ラ (G5の上のA5)
+        987.77, // 14票目：シ (B5)
+        
+        1046.50, // 15票目：ド (C6)
+        1174.66, // 16票目：レ (D6)
+        1318.51, // 17票目：ミ (E6)
+        1396.91, // 18票目：ファ (F6)
+        1567.98, // 19票目：ソ (G6)
+        1760.00  // 20票目：ラ (A6)
+    ];
+        
+    // 現在の票数に応じた音階を選ぶ（配列の範囲を超えないようにセーフティをかける）
+    const freq = frequencies[Math.min(voteCount - 1, frequencies.length - 1)];
+    
+    try {
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const ctx = new AudioContext();
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        
+        // ピコーンという歯切れの良いサイン波（お好みで 'triangle' や 'square' にもできます）
+        osc.type = 'sine'; 
+        osc.frequency.setValueAtTime(freq, ctx.currentTime);
+        
+        // 音が鳴り終わるときにプツッとノイズが乗らないように、滑らかに音量を下げる（フェードアウト）
+        gain.gain.setValueAtTime(0.3, ctx.currentTime); // 音量
+        gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3); // 0.3秒で消える
+        
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        
+        osc.start();
+        osc.stop(ctx.currentTime + 0.3);
+    } catch (e) {
+        console.log("オーディオ再生エラー:", e);
+    }
+}
+
+// 直前の票数を記憶して、票が増えた瞬間だけ音を鳴らすための変数
+window.lastVoteCountForAudio = 0;
 
 function typeWriter(text, elementId, speed = 80) {
   const el = document.getElementById(elementId);
@@ -129,6 +191,23 @@ socket.on("updateState", (state) => {
     const totalVotersCount = (state.connectedUsers || []).filter(u => u.role === 'voter').length || 3; 
     const maxPossibleVotes = totalVotersCount * 2; 
     const currentTotalVotes = Object.values(state.votes || {}).reduce((a, b) => a + b, 0);
+
+    // 🔥【追加】票数の変化を検知して音を鳴らすロジック
+    if (state.status === "voting" || state.status === "result") {
+        // 1票以上増えた、かつ満票（IPPON）未満のとき
+        if (currentTotalVotes > window.lastVoteCountForAudio && currentTotalVotes < maxPossibleVotes) {
+            playScaleSound(currentTotalVotes); // 🎵 ドレミを鳴らす
+        } 
+        // ちょうど満票（IPPON）に達した瞬間
+        else if (currentTotalVotes >= maxPossibleVotes && window.lastVoteCountForAudio < maxPossibleVotes) {
+            audioIppon.currentTime = 0;
+            audioIppon.play().catch(e => console.log("IPPON音ブロック:", e)); // 👑 IPPON！
+        }
+        window.lastVoteCountForAudio = currentTotalVotes; // 最新の票数を記憶
+    } else {
+        // 問題が変わった時や待機中（waiting）は票数の記憶をゼロにリセット
+        window.lastVoteCountForAudio = 0;
+    }
 
     // 📭 1. 待機中
     if (state.status === "waiting") {
